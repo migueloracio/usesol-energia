@@ -87,7 +87,7 @@ export default function Hero() {
 
             {/* Regional Badge / Kicker */}
             <div className="inline-block">
-              <span className="text-xs sm:text-sm font-bold tracking-wider text-emerald-400 uppercase drop-shadow-sm">
+              <span className="text-xs sm:text-sm font-bold tracking-wider text-theme-kicker uppercase drop-shadow-sm">
                 ENERGIA SOLAR NO ALTO TIETÊ
               </span>
             </div>
@@ -95,7 +95,7 @@ export default function Hero() {
             {/* Main Headline */}
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[52px] font-extrabold text-white tracking-tight leading-[1.12] drop-shadow-md">
               Sua conta de luz<br className="hidden sm:inline" /> pode estar custando<br />
-              <span className="text-emerald-400">muito mais do que deveria.</span>
+              <span className="text-theme-kicker">muito mais do que deveria.</span>
             </h1>
 
             {/* Subtitle with direct problem-solution */}
@@ -109,7 +109,7 @@ export default function Hero() {
                 href="https://wa.me/5511994333471?text=Ol%C3%A1!%20Gostaria%20de%20calcular%20minha%20economia%20com%20energia%20solar%20no%20Alto%20Tiet%C3%AA."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-3 bg-[#005a36] hover:bg-[#00472b] text-white font-bold text-sm sm:text-base px-7 py-4 rounded-full shadow-xl shadow-black/40 hover:shadow-[#005a36]/40 transition-all duration-200 hover:-translate-y-0.5 group"
+                className="inline-flex items-center justify-center gap-3 bg-theme-primary hover:bg-theme-primary-hover text-theme-primary-text font-bold text-sm sm:text-base px-7 py-4 rounded-full shadow-xl shadow-black/40 transition-all duration-200 hover:-translate-y-0.5 group"
               >
                 <MessageCircle className="w-5 h-5 fill-current" />
                 <span>Calcular minha economia no WhatsApp</span>
@@ -141,7 +141,7 @@ export default function Hero() {
 
               {/* Card Header */}
               <div className="flex items-center gap-3.5 mb-5">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0 border border-emerald-100">
+                <div className="w-10 h-10 rounded-xl bg-theme-accent-light text-theme-primary flex items-center justify-center shrink-0 border border-theme-accent-border">
                   <Calculator className="w-5 h-5" />
                 </div>
                 <div>
@@ -176,7 +176,7 @@ export default function Hero() {
                     step="50"
                     value={billAmount}
                     onChange={(e) => setBillAmount(Number(e.target.value))}
-                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#005a36] mt-2.5"
+                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[var(--theme-primary)] mt-2.5"
                   />
 
                   {/* Preset Quick Chips */}
@@ -186,8 +186,8 @@ export default function Hero() {
                         type="button"
                         key={val}
                         onClick={() => setBillAmount(val)}
-                        className={`text-[11px] font-semibold px-2 py-0.5 rounded-md transition-colors ${billAmount === val
-                            ? 'bg-[#005a36] text-white'
+                        className={`text-[11px] font-semibold px-2 py-0.5 rounded-md transition-all ${billAmount === val
+                            ? 'bg-theme-primary text-theme-primary-text shadow-xs'
                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                           }`}
                       >
@@ -207,7 +207,7 @@ export default function Hero() {
                       type="button"
                       onClick={() => setPropertyType('residencial')}
                       className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all ${propertyType === 'residencial'
-                          ? 'bg-[#005a36] text-white shadow-sm'
+                          ? 'bg-theme-primary text-theme-primary-text shadow-sm'
                           : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100'
                         }`}
                     >
@@ -219,7 +219,7 @@ export default function Hero() {
                       type="button"
                       onClick={() => setPropertyType('comercial')}
                       className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all ${propertyType === 'comercial'
-                          ? 'bg-[#005a36] text-white shadow-sm'
+                          ? 'bg-theme-primary text-theme-primary-text shadow-sm'
                           : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100'
                         }`}
                     >
@@ -237,7 +237,7 @@ export default function Hero() {
                   <select
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#005a36]/30 focus:border-[#005a36]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[var(--theme-primary)]/30 focus:border-[var(--theme-primary)]"
                   >
                     {citiesList.map((c) => (
                       <option key={c} value={c}>{c}</option>
@@ -246,7 +246,7 @@ export default function Hero() {
                 </div>
 
                 {/* Calculation Snapshot */}
-                <div className="bg-emerald-50/70 border border-emerald-100 rounded-xl p-3 space-y-1.5">
+                <div className="bg-theme-accent-light border border-theme-accent-border rounded-xl p-3 space-y-1.5">
                   <div className="flex items-center justify-between text-xs text-slate-600">
                     <span>Nova conta estimada:</span>
                     <span className="font-bold text-slate-800">
@@ -256,10 +256,10 @@ export default function Hero() {
 
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-medium text-slate-700 flex items-center gap-1">
-                      <TrendingUp className="w-3.5 h-3.5 text-emerald-700" />
+                      <TrendingUp className="w-3.5 h-3.5 text-theme-primary" />
                       Economia no 1º ano:
                     </span>
-                    <span className="font-extrabold text-[#005a36]">
+                    <span className="font-extrabold text-theme-primary">
                       R$ {yearlySavings.toLocaleString('pt-BR')},00
                     </span>
                   </div>
@@ -268,7 +268,7 @@ export default function Hero() {
                 {/* Primary Submit Button */}
                 <button
                   type="submit"
-                  className="w-full flex items-center justify-center gap-2 bg-[#005a36] hover:bg-[#00472b] text-white font-bold text-sm sm:text-base py-3.5 px-6 rounded-xl shadow-lg shadow-black/20 transition-all hover:scale-[1.01] active:scale-[0.99]"
+                  className="w-full flex items-center justify-center gap-2 bg-theme-primary hover:bg-theme-primary-hover text-theme-primary-text font-bold text-sm sm:text-base py-3.5 px-6 rounded-xl shadow-lg shadow-black/20 transition-all hover:scale-[1.01] active:scale-[0.99]"
                 >
                   <span>Calcular minha economia</span>
                 </button>

@@ -12,10 +12,12 @@ import FAQSection from './components/FAQSection';
 import FinalCTA from './components/FinalCTA';
 import Footer from './components/Footer';
 import FloatingWhatsApp from './components/FloatingWhatsApp';
+import { ThemeProvider } from './context/ThemeContext';
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-white text-slate-800 flex flex-col font-sans selection:bg-emerald-500 selection:text-white">
+    <ThemeProvider>
+      <div className="min-h-screen bg-white text-slate-800 flex flex-col font-sans selection:bg-amber-500 selection:text-white transition-colors duration-300">
       {/* Top Header Navigation */}
       <Navbar />
 
@@ -58,5 +60,6 @@ export default function App() {
       {/* Floating Smart WhatsApp for Instant Lead Qualification */}
       <FloatingWhatsApp />
     </div>
+    </ThemeProvider>
   );
 }

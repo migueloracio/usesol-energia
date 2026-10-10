@@ -45,14 +45,14 @@ export default function VSLSection() {
         
         {/* Section Header */}
         <div className="text-center space-y-3 mb-8 sm:mb-12">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-[#005a36] text-xs sm:text-sm font-bold uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-theme-accent-light border border-theme-accent-border text-theme-primary text-xs sm:text-sm font-bold uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
             <span>Apresentação Oficial Use Sol</span>
           </div>
 
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
             Veja como funciona a energia solar na prática<br className="hidden sm:inline" />
-            <span className="text-[#005a36]"> e comece a economizar de verdade.</span>
+            <span className="text-theme-primary"> e comece a economizar de verdade.</span>
           </h2>
 
           <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
@@ -170,7 +170,7 @@ export default function VSLSection() {
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-3 bg-[#005a36] hover:bg-[#00472b] text-white font-bold text-sm sm:text-base py-3.5 px-8 rounded-full shadow-xl shadow-black/20 hover:shadow-[#005a36]/30 transition-all duration-200 hover:-translate-y-0.5 group"
+            className="inline-flex items-center justify-center gap-3 bg-theme-primary hover:bg-theme-primary-hover text-theme-primary-text font-bold text-sm sm:text-base py-3.5 px-8 rounded-full shadow-xl shadow-black/20 transition-all duration-200 hover:-translate-y-0.5 group"
           >
             <MessageCircle className="w-5 h-5 fill-current" />
             <span>Falar com especialista pelo WhatsApp</span>

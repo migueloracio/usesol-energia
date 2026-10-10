@@ -91,7 +91,7 @@ export default function SolutionsSection() {
                     <span className={`text-xs px-3.5 py-1.5 rounded-full ${sol.tagColor}`}>
                       {sol.tag}
                     </span>
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[#005a36]">
+                    <div className="w-12 h-12 rounded-2xl bg-theme-accent-light border border-theme-accent-border flex items-center justify-center text-theme-primary">
                       <Icon className="w-6 h-6" />
                     </div>
                   </div>
@@ -99,7 +99,7 @@ export default function SolutionsSection() {
                   <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
                     {sol.title}
                   </h3>
-                  <p className="text-sm font-semibold text-emerald-700 mb-4">
+                  <p className="text-sm font-semibold text-theme-primary mb-4">
                     {sol.subtitle}
                   </p>
                   <p className="text-sm text-slate-600 leading-relaxed mb-6">
@@ -110,7 +110,7 @@ export default function SolutionsSection() {
                   <div className="space-y-3.5 mb-8">
                     {sol.benefits.map((b, idx) => (
                       <div key={idx} className="flex items-start gap-3 text-sm text-slate-700">
-                        <div className="w-5 h-5 rounded-full bg-emerald-100 text-[#005a36] flex items-center justify-center shrink-0 mt-0.5">
+                        <div className="w-5 h-5 rounded-full bg-theme-accent-light text-theme-primary flex items-center justify-center shrink-0 mt-0.5">
                           <Check className="w-3.5 h-3.5 stroke-[3]" />
                         </div>
                         <span className="font-medium">{b}</span>
@@ -126,7 +126,7 @@ export default function SolutionsSection() {
                   rel="noopener noreferrer"
                   className={`w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-bold text-sm sm:text-base transition-all group ${
                     sol.featured
-                      ? 'bg-[#005a36] hover:bg-[#00472b] text-white shadow-lg shadow-emerald-950/20'
+                      ? 'bg-theme-primary hover:bg-theme-primary-hover text-theme-primary-text shadow-lg'
                       : 'bg-slate-900 hover:bg-slate-800 text-white shadow-md'
                   }`}
                 >

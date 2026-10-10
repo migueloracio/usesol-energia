@@ -136,14 +136,14 @@ export default function PhotoGallery3D() {
         
         {/* Section Header */}
         <div className="text-center space-y-3 mb-8 sm:mb-14">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-emerald-400 text-xs sm:text-sm font-bold uppercase tracking-wider backdrop-blur-md">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 border border-[var(--theme-primary)]/30 text-theme-kicker text-xs sm:text-sm font-bold uppercase tracking-wider backdrop-blur-md">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
             <span>Nossas Instalações Reais</span>
           </div>
 
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
             Fotos de projetos entregues e homologados<br className="hidden sm:inline" />
-            <span className="text-emerald-400"> no Alto Tietê e região.</span>
+            <span className="text-theme-kicker"> no Alto Tietê e região.</span>
           </h2>
 
           <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
@@ -193,7 +193,7 @@ export default function PhotoGallery3D() {
                 }}
                 className={`absolute w-[270px] sm:w-[380px] md:w-[460px] h-[300px] sm:h-[390px] md:h-[430px] rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 ease-out transform ${
                   isCenter 
-                    ? 'ring-2 ring-emerald-400 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_40px_rgba(16,185,129,0.25)]' 
+                    ? 'ring-2 ring-[var(--theme-primary)] shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_40px_var(--theme-glow)]' 
                     : 'shadow-2xl ring-1 ring-white/10 filter brightness-75 hover:brightness-95'
                 }`}
                 style={{
@@ -298,7 +298,7 @@ export default function PhotoGallery3D() {
               onClick={() => setCurrentIndex(idx)}
               className={`h-2 rounded-full transition-all duration-300 ${
                 idx === currentIndex 
-                  ? 'w-8 bg-emerald-400 shadow-md shadow-emerald-400/50' 
+                  ? 'w-8 bg-theme-primary shadow-md' 
                   : 'w-2 bg-white/20 hover:bg-white/40'
               }`}
               aria-label={`Ir para a foto ${idx + 1}`}
@@ -312,7 +312,7 @@ export default function PhotoGallery3D() {
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-3 bg-[#005a36] hover:bg-[#00472b] text-white font-bold text-sm sm:text-base py-3.5 px-8 rounded-full shadow-xl shadow-black/40 hover:shadow-[#005a36]/40 transition-all duration-200 hover:-translate-y-0.5 group border border-emerald-400/30"
+            className="inline-flex items-center justify-center gap-3 bg-theme-primary hover:bg-theme-primary-hover text-theme-primary-text font-bold text-sm sm:text-base py-3.5 px-8 rounded-full shadow-xl shadow-black/40 transition-all duration-200 hover:-translate-y-0.5 group border border-white/20"
           >
             <MessageCircle className="w-5 h-5 fill-current" />
             <span>Quero um projeto com esse padrão no meu telhado</span>

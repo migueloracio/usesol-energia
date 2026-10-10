@@ -30,7 +30,7 @@ export default function Logo({ className = "h-10", isDark = true }) {
             sol
           </span>
         </div>
-        <span className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-emerald-400">
+        <span className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-theme-kicker">
           energia renovável
         </span>
       </div>

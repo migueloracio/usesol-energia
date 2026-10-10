@@ -40,7 +40,7 @@ export default function TrustBar() {
                 key={index} 
                 className="flex items-start gap-4 p-2 transition-transform hover:-translate-y-0.5"
               >
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 text-[#005a36]">
+                <div className="w-12 h-12 rounded-2xl bg-theme-accent-light border border-theme-accent-border flex items-center justify-center shrink-0 text-theme-primary">
                   <Icon className="w-6 h-6 stroke-[2]" />
                 </div>
                 <div>

@@ -14,35 +14,41 @@ export default function FloatingWhatsApp() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Mobile scroll detection for simulator visibility
+  // Mobile scroll detection: show only after the image carousel (#galeria)
   useEffect(() => {
     let ticking = false;
 
-    const checkSimulatorVisibility = () => {
-      const simulatorEl = document.getElementById('simulador');
-      if (simulatorEl) {
-        const rect = simulatorEl.getBoundingClientRect();
-        // O card sai da tela pelo topo quando o rect.bottom fica perto ou abaixo do topo da tela (<= 130px).
-        // Quando o usuário está no topo ou navegando no simulador, rect.bottom > 130, então a barra fica oculta.
-        // Assim que ele passa do simulador (card quase saindo ou já fora), a barra desliza suavemente para cima.
-        const isPastSimulator = rect.bottom <= 130;
-        setShowMobileBar(isPastSimulator);
+    const checkGalleryVisibility = () => {
+      const galleryEl = document.getElementById('galeria');
+      if (galleryEl) {
+        const rect = galleryEl.getBoundingClientRect();
+        // A seção do carrossel sai da tela pelo topo quando rect.bottom <= 130.
+        // Enquanto o usuário estiver navegando antes ou durante o carrossel, a barra fica 100% oculta.
+        // Assim que ele passa do carrossel para as seções seguintes (Soluções, Casos, etc.), a barra desliza suavemente.
+        const isPastGallery = rect.bottom <= 130;
+        setShowMobileBar(isPastGallery);
       } else {
-        setShowMobileBar(window.scrollY > 750);
+        const simulatorEl = document.getElementById('simulador');
+        if (simulatorEl) {
+          const rect = simulatorEl.getBoundingClientRect();
+          setShowMobileBar(rect.bottom <= 130);
+        } else {
+          setShowMobileBar(window.scrollY > 1600);
+        }
       }
       ticking = false;
     };
 
     const handleScrollOrResize = () => {
       if (!ticking) {
-        window.requestAnimationFrame(checkSimulatorVisibility);
+        window.requestAnimationFrame(checkGalleryVisibility);
         ticking = true;
       }
     };
 
     window.addEventListener('scroll', handleScrollOrResize, { passive: true });
     window.addEventListener('resize', handleScrollOrResize, { passive: true });
-    checkSimulatorVisibility();
+    checkGalleryVisibility();
 
     return () => {
       window.removeEventListener('scroll', handleScrollOrResize);
@@ -91,10 +97,10 @@ export default function FloatingWhatsApp() {
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-5 rounded-full shadow-2xl shadow-emerald-950/80 hover:shadow-emerald-600/50 hover:scale-105 active:scale-95 transition-all duration-200 group border-2 border-emerald-400/40"
+            className="flex items-center gap-2.5 bg-theme-primary hover:bg-theme-primary-hover text-theme-primary-text font-bold py-3.5 px-5 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 group border-2 border-white/20"
             aria-label="Falar pelo WhatsApp com a Use Sol"
           >
-            <MessageCircle className="w-6 h-6 fill-current text-white animate-pulse" />
+            <MessageCircle className="w-6 h-6 fill-current animate-pulse" />
             <span className="text-sm tracking-wide">Simular no WhatsApp</span>
           </a>
         </div>
@@ -113,9 +119,9 @@ export default function FloatingWhatsApp() {
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full flex items-center justify-center gap-2.5 bg-gradient-to-r from-emerald-600 via-[#005a36] to-emerald-600 active:scale-[0.98] text-white font-bold text-sm sm:text-base py-3.5 px-5 rounded-2xl shadow-lg shadow-emerald-950/60 border border-emerald-400/30 transition-all duration-150"
+          className="w-full flex items-center justify-center gap-2.5 bg-theme-primary hover:bg-theme-primary-hover active:scale-[0.98] text-theme-primary-text font-bold text-sm sm:text-base py-3.5 px-5 rounded-2xl shadow-lg shadow-black/40 border border-white/20 transition-all duration-150"
         >
-          <MessageCircle className="w-5 h-5 fill-current text-white animate-pulse" />
+          <MessageCircle className="w-5 h-5 fill-current animate-pulse" />
           <span className="tracking-wide">Simular Economia no WhatsApp</span>
         </a>
       </aside>

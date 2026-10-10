@@ -17,7 +17,7 @@ export default function FinancingSection() {
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
               Troque a conta de luz pela parcela de um{' '}
-              <span className="text-[#005a36]">
+              <span className="text-theme-primary">
                 patrimônio que é seu.
               </span>
             </h2>
@@ -129,9 +129,9 @@ export default function FinancingSection() {
               </div>
 
               {/* Commercial Offer Callout (From Instagram campaigns) */}
-              <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-5 space-y-2 mb-6">
+              <div className="bg-theme-accent-light border border-theme-accent-border rounded-2xl p-5 space-y-2 mb-6">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-emerald-900">
+                  <span className="text-xs font-semibold text-slate-800">
                     Referência para residências:
                   </span>
                   <span className="text-xs bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded font-bold">
@@ -139,7 +139,7 @@ export default function FinancingSection() {
                   </span>
                 </div>
                 <p className="text-lg font-black text-slate-900">
-                  Sistemas a partir de <span className="text-[#005a36]">R$ 11.500</span>
+                  Sistemas a partir de <span className="text-theme-primary">R$ 11.500</span>
                 </p>
                 <p className="text-xs text-slate-600 leading-relaxed">
                   Consulte os requisitos do seu telhado e tenha uma simulação com parcelas projetadas exatamente para o seu consumo real.
@@ -147,7 +147,7 @@ export default function FinancingSection() {
               </div>
 
               <div className="flex items-center gap-2 text-xs text-slate-500">
-                <ShieldCheck className="w-4 h-4 text-[#005a36] shrink-0" />
+                <ShieldCheck className="w-4 h-4 text-theme-primary shrink-0" />
                 <span>Simulação sem custos e sem compromisso de contratação.</span>
               </div>
 

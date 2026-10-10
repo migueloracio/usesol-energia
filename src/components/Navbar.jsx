@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Logo from './Logo';
+import ThemeSwitcher from './ThemeSwitcher';
 import { MessageCircle, Menu, X, ChevronDown } from 'lucide-react';
 
 export default function Navbar() {
@@ -59,28 +60,34 @@ export default function Navbar() {
             </a>
           </nav>
 
-          {/* Desktop CTA Button */}
-          <div className="hidden sm:flex items-center gap-4">
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-[#005a36] hover:bg-[#00472b] text-white font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-full transition-all duration-200 shadow-md shadow-black/30 hover:shadow-[#005a36]/30 hover:-translate-y-0.5 active:translate-y-0"
-            >
-              <MessageCircle className="w-4 h-4 fill-current" />
-              <span>Fale com um especialista</span>
-            </a>
-          </div>
+          {/* Controls: Theme Switcher & Desktop CTA */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Modo Verde vs Modo Laranja Switcher */}
+            <ThemeSwitcher />
 
-          {/* Mobile Menu Button */}
-          <button 
-            type="button"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 rounded-lg text-slate-200 hover:text-white hover:bg-black/30 focus:outline-none"
-            aria-label="Abrir menu de navegação"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+            {/* Desktop CTA Button */}
+            <div className="hidden sm:flex items-center gap-4">
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-theme-primary hover:bg-theme-primary-hover text-white font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-full transition-all duration-200 shadow-md shadow-black/30 hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <MessageCircle className="w-4 h-4 fill-current" />
+                <span>Fale com um especialista</span>
+              </a>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button 
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-2 rounded-lg text-slate-200 hover:text-white hover:bg-black/30 focus:outline-none"
+              aria-label="Abrir menu de navegação"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Dropdown Menu */}
