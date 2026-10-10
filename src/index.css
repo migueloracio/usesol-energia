@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-display: 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-script: 'Caveat', cursive;
+  
+  --color-solar-50: #FFFBEB;
+  --color-solar-100: #FEF3C7;
+  --color-solar-200: #FDE68A;
+  --color-solar-300: #FCD34D;
+  --color-solar-400: #FBBF24;
+  --color-solar-500: #F59E0B;
+  --color-solar-600: #D97706;
+  --color-solar-gold: #F8B333;
+
+  --color-brand-emerald: #061A14;
+  --color-brand-emerald-dark: #03100C;
+  --color-brand-emerald-surface: #0B271F;
+  --color-brand-emerald-card: #0F3227;
+  --color-brand-green: #0E7042;
+  --color-brand-green-hover: #0A5A34;
+  --color-brand-light-green: #10B981;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-family: var(--font-sans);
+}
+
+body {
+  background-color: #ffffff;
+  color: #0f172a;
+  overflow-x: hidden;
+}
+
+/* Custom smooth scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #03100C;
+}
+::-webkit-scrollbar-thumb {
+  background: #164E3A;
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #1E6B50;
+}
