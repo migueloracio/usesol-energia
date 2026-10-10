@@ -2,6 +2,8 @@ import React from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import TrustBar from './components/TrustBar';
+import VSLSection from './components/VSLSection';
+import PhotoGallery3D from './components/PhotoGallery3D';
 import SolutionsSection from './components/SolutionsSection';
 import RealCasesSection from './components/RealCasesSection';
 import ProcessTimeline from './components/ProcessTimeline';
@@ -24,6 +26,12 @@ export default function App() {
 
         {/* 4 Pillars Trust Bar */}
         <TrustBar />
+
+        {/* VSL Section: Official Presentation Video */}
+        <VSLSection />
+
+        {/* 3D Interactive Installation Gallery */}
+        <PhotoGallery3D />
 
         {/* Solutions & Services: Residential, Commercial, Maintenance */}
         <SolutionsSection />

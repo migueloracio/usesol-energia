@@ -38,8 +38,11 @@ export default function Navbar() {
               Início
               <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-400 rounded-full" />
             </a>
-            <a href="#solucoes" className="text-sm font-medium text-slate-200 hover:text-emerald-400 transition-colors py-1">
-              Sobre nós
+            <a href="#apresentacao" className="text-sm font-medium text-slate-200 hover:text-emerald-400 transition-colors py-1">
+              Vídeo
+            </a>
+            <a href="#galeria" className="text-sm font-medium text-slate-200 hover:text-emerald-400 transition-colors py-1">
+              Galeria 3D
             </a>
             <a href="#solucoes" className="text-sm font-medium text-slate-200 hover:text-emerald-400 transition-colors py-1 inline-flex items-center gap-1">
               <span>Soluções</span>
@@ -91,11 +94,18 @@ export default function Navbar() {
               Início
             </a>
             <a 
-              href="#solucoes" 
+              href="#apresentacao" 
               onClick={() => setMobileMenuOpen(false)}
               className="px-3 py-2 rounded-lg text-base font-medium text-slate-200 hover:bg-emerald-900/40"
             >
-              Sobre nós
+              Vídeo Apresentação
+            </a>
+            <a 
+              href="#galeria" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-lg text-base font-medium text-slate-200 hover:bg-emerald-900/40"
+            >
+              Galeria 3D de Instalações
             </a>
             <a 
               href="#solucoes" 
