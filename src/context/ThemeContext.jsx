@@ -2,25 +2,24 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const ThemeContext = createContext();
 
+const DEFAULT_THEME = 'orange';
+
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('usesol_theme') || 'green';
-    }
-    return 'green';
-  });
+  // Padrão oficial definido pelo cliente: Modo Laranja (Identidade Solar)
+  const [theme, setTheme] = useState(DEFAULT_THEME);
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('usesol_theme', theme);
-  }, [theme]);
+    document.documentElement.setAttribute('data-theme', DEFAULT_THEME);
+    localStorage.setItem('usesol_theme', DEFAULT_THEME);
+  }, []);
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === 'green' ? 'orange' : 'green'));
+    // Mantém esquema laranja como fixo por definição do cliente
+    setTheme(DEFAULT_THEME);
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, isOrange: theme === 'orange' }}>
+    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, isOrange: true }}>
       {children}
     </ThemeContext.Provider>
   );

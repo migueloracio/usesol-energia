@@ -2,6 +2,8 @@ import React from 'react';
 import Logo from './Logo';
 import { MapPin, Phone, Mail, ArrowUp } from 'lucide-react';
 
+const CURRENT_YEAR = new Date().getFullYear();
+
 export default function Footer() {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -89,7 +91,7 @@ export default function Footer() {
         {/* Bottom copyright bar */}
         <div className="pt-8 border-t border-emerald-950/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-300">
           <p>
-            © {new Date().getFullYear()} Use Sol Energia Renovável. Todos os direitos reservados. CNPJ homologado.
+            © {CURRENT_YEAR} Use Sol Energia Renovável. Todos os direitos reservados. CNPJ homologado.
           </p>
 
           <button

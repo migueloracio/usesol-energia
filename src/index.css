@@ -1,29 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+/* Modo Laranja Oficial Definido como Padrão */
 :root,
-:root[data-theme="green"] {
-  --theme-primary: #005a36;
-  --theme-primary-hover: #00472b;
-  --theme-primary-text: #ffffff;
-  --theme-accent: #10B981;
-  --theme-accent-hover: #059669;
-  --theme-accent-light: #ecfdf5;
-  --theme-accent-border: #a7f3d0;
-  --theme-kicker: #34d399;
-  --theme-glow: rgba(16, 185, 129, 0.25);
-  --theme-dark-bg: #02140D;
-  --theme-dark-surface: #041D14;
-  --theme-dark-card: #06261B;
-  --theme-dark-border: rgba(16, 185, 129, 0.2);
-  --theme-badge-bg: #ecfdf5;
-  --theme-badge-text: #065f46;
-  --theme-badge-border: #a7f3d0;
-  --theme-pill-bg: #005a36;
-  --theme-pill-hover: #00472b;
-  --theme-pill-text: #ffffff;
-}
-
 :root[data-theme="orange"] {
   --theme-primary: #F7A838;
   --theme-primary-hover: #EA8815;
@@ -46,6 +24,29 @@
   --theme-pill-text: #1A1103;
 }
 
+/* Modo Verde Reservado */
+:root[data-theme="green"] {
+  --theme-primary: #005a36;
+  --theme-primary-hover: #00472b;
+  --theme-primary-text: #ffffff;
+  --theme-accent: #10B981;
+  --theme-accent-hover: #059669;
+  --theme-accent-light: #ecfdf5;
+  --theme-accent-border: #a7f3d0;
+  --theme-kicker: #34d399;
+  --theme-glow: rgba(16, 185, 129, 0.25);
+  --theme-dark-bg: #02140D;
+  --theme-dark-surface: #041D14;
+  --theme-dark-card: #06261B;
+  --theme-dark-border: rgba(16, 185, 129, 0.2);
+  --theme-badge-bg: #ecfdf5;
+  --theme-badge-text: #065f46;
+  --theme-badge-border: #a7f3d0;
+  --theme-pill-bg: #005a36;
+  --theme-pill-hover: #00472b;
+  --theme-pill-text: #ffffff;
+}
+
 @theme {
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-display: 'Outfit', system-ui, -apple-system, sans-serif;
@@ -58,38 +59,32 @@
 .text-theme-primary { color: var(--theme-primary) !important; }
 .text-theme-primary-text { color: var(--theme-primary-text) !important; }
 .text-theme-kicker { color: var(--theme-kicker) !important; }
-.text-theme-accent { color: var(--theme-accent) !important; }
-.border-theme-primary { border-color: var(--theme-primary) !important; }
-.border-theme-accent { border-color: var(--theme-accent) !important; }
-.bg-theme-accent-light { background-color: var(--theme-accent-light) !important; }
 .border-theme-accent-border { border-color: var(--theme-accent-border) !important; }
-.bg-theme-dark { background-color: var(--theme-dark-bg) !important; }
-.bg-theme-surface { background-color: var(--theme-dark-surface) !important; }
-.bg-theme-card { background-color: var(--theme-dark-card) !important; }
+.bg-theme-accent-light { background-color: var(--theme-accent-light) !important; }
+.text-theme-accent { color: var(--theme-accent) !important; }
+.bg-theme-dark-surface { background-color: var(--theme-dark-surface) !important; }
+.bg-theme-dark-card { background-color: var(--theme-dark-card) !important; }
 .border-theme-dark-border { border-color: var(--theme-dark-border) !important; }
+.bg-theme-badge-bg { background-color: var(--theme-badge-bg) !important; }
+.text-theme-badge-text { color: var(--theme-badge-text) !important; }
+.border-theme-badge-border { border-color: var(--theme-badge-border) !important; }
 
+/* Global Smooth Scrolling */
 html {
   scroll-behavior: smooth;
-  font-family: var(--font-sans);
 }
 
-body {
-  background-color: #ffffff;
-  color: #0f172a;
-  overflow-x: hidden;
-}
-
-/* Custom smooth scrollbar */
+/* Custom modern scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--theme-dark-bg);
+  background: #0D1217;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--theme-primary);
+  background: #F7A838;
   border-radius: 5px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--theme-primary-hover);
+  background: #EA8815;
 }

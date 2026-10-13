@@ -2,14 +2,12 @@ import React, { useState } from 'react';
 import {
   Calculator,
   ArrowRight,
-  CheckCircle2,
   MapPin,
   ShieldCheck,
   Home,
   Building2,
   TrendingUp,
-  MessageCircle,
-  Sparkles
+  MessageCircle
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -22,7 +20,6 @@ export default function Hero() {
   const estimatedNewBill = Math.max(propertyType === 'residencial' ? 65 : 150, Math.round(billAmount * 0.08));
   const monthlySavings = Math.max(0, billAmount - estimatedNewBill);
   const yearlySavings = monthlySavings * 12;
-  const twentyFiveYearSavings = yearlySavings * 25;
 
   const citiesList = [
     'Ferraz de Vasconcelos',
@@ -145,9 +142,9 @@ export default function Hero() {
                   <Calculator className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 leading-snug">
+                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 leading-snug">
                     Descubra quanto você pode economizar
-                  </h3>
+                  </h2>
                 </div>
               </div>
 

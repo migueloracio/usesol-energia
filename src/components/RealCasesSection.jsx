@@ -80,7 +80,7 @@ export default function RealCasesSection() {
                       {c.initials}
                     </div>
                     <div>
-                      <h4 className="font-bold text-white text-base leading-tight">{c.name}</h4>
+                      <h3 className="font-bold text-white text-base leading-tight">{c.name}</h3>
                       <p className="text-xs text-emerald-400 font-medium">{c.role}</p>
                     </div>
                   </div>

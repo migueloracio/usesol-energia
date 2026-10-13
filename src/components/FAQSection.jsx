@@ -72,9 +72,9 @@ export default function FAQSection() {
                   className="w-full text-left py-4.5 px-6 flex items-center justify-between gap-4 focus:outline-none"
                   aria-expanded={isOpen}
                 >
-                  <span className="text-base sm:text-lg font-bold text-slate-900">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 m-0">
                     {faq.q}
-                  </span>
+                  </h3>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-transform duration-200 ${
                     isOpen ? 'bg-[#005a36] text-white rotate-180' : 'bg-slate-100 text-slate-600'
                   }`}>

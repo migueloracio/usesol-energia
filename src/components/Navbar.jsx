@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Logo from './Logo';
-import ThemeSwitcher from './ThemeSwitcher';
 import { MessageCircle, Menu, X, ChevronDown } from 'lucide-react';
 
 export default function Navbar() {
@@ -60,10 +59,8 @@ export default function Navbar() {
             </a>
           </nav>
 
-          {/* Controls: Theme Switcher & Desktop CTA */}
+          {/* Controls: Desktop CTA */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Modo Verde vs Modo Laranja Switcher */}
-            <ThemeSwitcher />
 
             {/* Desktop CTA Button */}
             <div className="hidden sm:flex items-center gap-4">

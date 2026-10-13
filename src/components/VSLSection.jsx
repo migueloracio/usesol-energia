@@ -5,7 +5,6 @@ export default function VSLSection() {
   const videoRef = useRef(null);
   const [isMuted, setIsMuted] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [hasInteracted, setHasInteracted] = useState(false);
 
   const toggleSound = (e) => {
     e.stopPropagation();
@@ -13,7 +12,6 @@ export default function VSLSection() {
       const nextMuted = !isMuted;
       videoRef.current.muted = nextMuted;
       setIsMuted(nextMuted);
-      setHasInteracted(true);
       // Se estava pausado, garante o play ao desmutar
       if (!isPlaying) {
         videoRef.current.play();

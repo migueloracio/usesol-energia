@@ -1,5 +1,5 @@
 import React from 'react';
-import { CreditCard, Landmark, ArrowRight, ShieldCheck, Check, Sparkles } from 'lucide-react';
+import { Landmark, ArrowRight, ShieldCheck, Check, Sparkles } from 'lucide-react';
 
 export default function FinancingSection() {
   return (

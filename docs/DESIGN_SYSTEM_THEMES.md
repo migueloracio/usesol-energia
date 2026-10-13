@@ -57,5 +57,9 @@ A partir da identidade visual oficial fornecida (logotipo e uniformes da equipe 
    - Barra discreta e sofisticada flutuante (ou na Navbar) com alternância com um clique:
      - `🌿 Modo Verde`
      - `☀️ Modo Laranja`
-3. **Desativação Pós-Decisão do Cliente:**
-   - Uma vez escolhida a cor pelo cliente na reunião, basta definir `const DEFAULT_THEME = 'orange'` (ou `'green'`) e ocultar o botão seletor.
+3. **Decisão Final do Cliente (Concluída em 12/10/2026):**
+   - **Resultado:** O cliente aprovou e definiu como padrão oficial da marca o **☀️ Modo Laranja (Solar Energy & Uniforme)**.
+   - **Ações Realizadas:**
+     - O botão `ThemeSwitcher` foi desativado e removido da `Navbar`.
+     - O CSS `:root` e o HTML raiz (`data-theme="orange"`) foram fixados no esquema laranja.
+     - `ThemeContext` foi configurado com `DEFAULT_THEME = 'orange'` permanente.

@@ -1,0 +1,6 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemap oficial da Use Sol Energia Renovável
+Sitemap: https://usesolenergia.com/sitemap.xml

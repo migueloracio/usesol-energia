@@ -209,6 +209,8 @@ export default function PhotoGallery3D() {
                 <img
                   src={item.src}
                   alt={item.title}
+                  width="460"
+                  height="430"
                   loading={index < 3 ? 'eager' : 'lazy'}
                   className="w-full h-full object-cover"
                 />
