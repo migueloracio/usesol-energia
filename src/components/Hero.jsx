@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Calculator,
   ArrowRight,
@@ -7,7 +7,8 @@ import {
   Home,
   Building2,
   TrendingUp,
-  MessageCircle
+  MessageCircle,
+  Play
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -15,11 +16,7 @@ export default function Hero() {
   const [billAmount, setBillAmount] = useState(650);
   const [propertyType, setPropertyType] = useState('residencial');
   const [city, setCity] = useState('Ferraz de Vasconcelos');
-
-  // Cálculos de energia solar no Brasil
-  const estimatedNewBill = Math.max(propertyType === 'residencial' ? 65 : 150, Math.round(billAmount * 0.08));
-  const monthlySavings = Math.max(0, billAmount - estimatedNewBill);
-  const yearlySavings = monthlySavings * 12;
+  const [detectedCity, setDetectedCity] = useState('');
 
   const citiesList = [
     'Ferraz de Vasconcelos',
@@ -32,6 +29,86 @@ export default function Hero() {
     'Santos (Litoral)',
     'São Paulo (capital)'
   ];
+
+  // Detecção inteligente da cidade do visitante via IP (sem pedir permissão invasiva)
+  useEffect(() => {
+    let isMounted = true;
+
+    const resolveLocation = (cityRaw, orgRaw) => {
+      const org = (orgRaw || '').toLowerCase();
+      const city = (cityRaw || '').trim();
+
+      // Provedores locais de fibra de Ferraz de Vasconcelos (ex: Tera Soluções, Telex Fibra, ASN 271023)
+      if (org.includes('tera') || org.includes('telex') || org.includes('271023')) {
+        return 'Ferraz de Vasconcelos';
+      }
+
+      // Se a base de dados de IP retornar o nome macro "Região Metropolitana de São Paulo"
+      const lower = city.toLowerCase();
+      if (lower.includes('metropolitana') || lower.includes('região') || lower.includes('regiao')) {
+        return 'Alto Tietê';
+      }
+
+      return city;
+    };
+
+    const detectCity = async () => {
+      // 1ª Tentativa: geojs.io (rápida e precisa em cidades do Brasil)
+      try {
+        const res = await fetch('https://get.geojs.io/v1/ip/geo.json');
+        if (res.ok) {
+          const data = await res.json();
+          const cleanCity = resolveLocation(data.city, data.organization_name || data.organization);
+          if (cleanCity && isMounted) {
+            setDetectedCity(cleanCity);
+            const found = citiesList.find((c) =>
+              c.toLowerCase().includes(cleanCity.toLowerCase())
+            );
+            if (found) {
+              setCity(found);
+            }
+            return;
+          }
+        }
+      } catch {
+        // Fallback silencioso
+      }
+
+      // 2ª Tentativa: ipwho.is
+      try {
+        const res = await fetch('https://ipwho.is/?lang=pt-BR');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.success && isMounted) {
+            const org = data.connection ? (data.connection.isp || data.connection.org) : '';
+            const cleanCity = resolveLocation(data.city, org);
+            if (cleanCity) {
+              setDetectedCity(cleanCity);
+              const found = citiesList.find((c) =>
+                c.toLowerCase().includes(cleanCity.toLowerCase())
+              );
+              if (found) {
+                setCity(found);
+              }
+              return;
+            }
+          }
+        }
+      } catch {
+        // Fallback silencioso
+      }
+    };
+
+    detectCity();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Cálculos de energia solar no Brasil
+  const estimatedNewBill = Math.max(propertyType === 'residencial' ? 65 : 150, Math.round(billAmount * 0.08));
+  const monthlySavings = Math.max(0, billAmount - estimatedNewBill);
+  const yearlySavings = monthlySavings * 12;
 
   const handleSimulateWhatsApp = (e) => {
     e.preventDefault();
@@ -60,81 +137,120 @@ export default function Hero() {
   };
 
   return (
-    <section id="inicio" className="relative min-h-[92vh] lg:min-h-screen pt-28 pb-24 sm:pb-28 lg:pt-36 lg:pb-36 flex flex-col justify-center overflow-hidden">
-      {/* Background Solar House Photography */}
-      <div className="absolute inset-0 z-0">
-        <img
-          src="/hero-bg.jpg"
-          alt="Casa moderna com sistema de energia solar fotovoltaica no telhado - Use Sol Energia"
-          className="w-full h-full object-cover object-[center_right] lg:object-center brightness-[0.98]"
-        />
+    <section id="inicio" className="relative min-h-[92vh] lg:min-h-screen pt-28 pb-16 sm:pb-20 lg:pt-36 lg:pb-28 flex flex-col justify-center overflow-hidden bg-slate-950">
+      {/* Background Video / Sunset Solar Photography (Always in background on Desktop & Mobile) */}
+      <div className="absolute inset-x-0 top-0 h-[800px] sm:h-[860px] lg:h-full lg:inset-0 z-0 overflow-hidden">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="/hero-bg.jpg"
+          className="w-full h-full object-cover object-[50%_35%] lg:object-center transform-gpu will-change-transform"
+        >
+          <source src="/Animating_bg_Usesol.mp4" type="video/mp4" />
+          <img
+            src="/hero-bg.jpg"
+            alt="Casa moderna com sistema de energia solar fotovoltaica no telhado - Use Sol Energia"
+            className="w-full h-full object-cover object-[50%_35%] lg:object-center"
+          />
+        </video>
 
-        {/* Dark Vignette Overlay for High Readability on Left Side */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#02130C]/95 via-[#02130C]/85 via-45% to-[#02130C]/35 sm:to-transparent" />
+        {/* Desktop Gradient: Left side dark vignette for readable text, Center 100% OPEN for solar house, Right subtle behind card */}
+        <div className="hidden lg:block absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/40 via-30% to-transparent via-65% to-slate-950/45" />
 
-        {/* Subtle top shade for navbar contrast */}
-        <div className="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-[#02130C]/80 to-transparent pointer-events-none" />
+        {/* Mobile Gradient: Top vignette for text readability, open middle for house, bottom fade into dark */}
+        <div className="lg:hidden absolute inset-0 bg-gradient-to-b from-slate-950/90 via-slate-950/20 via-40% to-slate-950" />
+
+        {/* Top Navbar Shadow */}
+        <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-slate-950/80 to-transparent pointer-events-none" />
+
+        {/* Bottom Transition */}
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-slate-950 to-transparent pointer-events-none" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+      <div className="relative z-10 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-16 w-full">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 lg:gap-12">
 
-          {/* Left Column: Value Proposition & Copy */}
-          <div className="lg:col-span-7 space-y-6 text-left">
+          {/* Left Column: Value Proposition & Copy (Pushed far to the left) */}
+          <div className="w-full lg:max-w-[480px] xl:max-w-[530px] shrink-0 space-y-6 text-left">
 
-            {/* Regional Badge / Kicker */}
+            {/* Regional Badge / Kicker com Detecção Dinâmica de Cidade */}
             <div className="inline-block">
-              <span className="text-xs sm:text-sm font-bold tracking-wider text-theme-kicker uppercase drop-shadow-sm">
-                ENERGIA SOLAR NO ALTO TIETÊ
+              <span className="text-xs sm:text-sm font-bold tracking-wider text-theme-kicker uppercase drop-shadow-sm bg-theme-accent-light px-3.5 py-1.5 rounded-full border border-theme-accent-border inline-flex items-center gap-1.5 transition-all">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <span>
+                  {detectedCity && !detectedCity.toLowerCase().includes('alto tietê')
+                    ? `ENERGIA SOLAR EM ${detectedCity.toUpperCase()}`
+                    : 'ENERGIA SOLAR NO ALTO TIETÊ'}
+                </span>
               </span>
             </div>
 
-            {/* Main Headline */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[52px] font-extrabold text-white tracking-tight leading-[1.12] drop-shadow-md">
-              Sua conta de luz<br className="hidden sm:inline" /> pode estar custando<br />
-              <span className="text-theme-kicker">muito mais do que deveria.</span>
+            {/* Main Headline (Clean 3-line cadence like Driveo) */}
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[52px] font-black text-white tracking-tight leading-[1.1] drop-shadow-md">
+              Sua conta de luz<br />
+              <span className="text-theme-primary">pode custar menos.</span><br />
+              Economize até 95%.
             </h1>
 
             {/* Subtitle with direct problem-solution */}
-            <p className="text-base sm:text-lg text-slate-200 max-w-xl font-normal leading-relaxed drop-shadow-sm">
-              Gere sua própria energia e reduza em até <strong className="text-white font-bold">95% o valor da sua conta de luz</strong>. Projeto, instalação e homologação para residências e empresas em todo o Alto Tietê.
+            <p className="text-base sm:text-lg text-slate-300 max-w-xl font-normal leading-relaxed drop-shadow-sm">
+              Gere sua própria energia e livre-se dos aumentos constantes. Projeto, instalação técnica e homologação para residências e empresas no Alto Tietê.
             </p>
 
-            {/* Main WhatsApp CTA Pill Button */}
-            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+            {/* Double Action Buttons (Driveo Pattern - Descidos no mobile para destacar a casa e posicionar na piscina) */}
+            <div className="pt-24 sm:pt-28 lg:pt-4 mt-6 sm:mt-8 lg:mt-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 sm:gap-4">
               <a
-                href="https://wa.me/5511994333471?text=Ol%C3%A1!%20Gostaria%20de%20calcular%20minha%20economia%20com%20energia%20solar%20no%20Alto%20Tiet%C3%AA."
+                href={`https://wa.me/5511994333471?text=${encodeURIComponent(
+                  detectedCity
+                    ? `Olá! Sou de ${detectedCity} e gostaria de calcular minha economia com energia solar na Use Sol.`
+                    : 'Olá! Gostaria de calcular minha economia com energia solar no Alto Tietê.'
+                )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-3 bg-theme-primary hover:bg-theme-primary-hover text-theme-primary-text font-bold text-sm sm:text-base px-7 py-4 rounded-full shadow-xl shadow-black/40 transition-all duration-200 hover:-translate-y-0.5 group"
+                className="inline-flex items-center justify-center gap-2.5 bg-theme-primary hover:bg-theme-primary-hover text-theme-primary-text font-bold text-sm sm:text-base px-6 sm:px-7 py-3.5 sm:py-4 rounded-full shadow-xl shadow-black/30 transition-all duration-200 hover:-translate-y-0.5 group"
               >
                 <MessageCircle className="w-5 h-5 fill-current" />
-                <span>Calcular minha economia no WhatsApp</span>
+                <span>Simular no WhatsApp</span>
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </a>
+
+              <a
+                href="#apresentacao"
+                className="inline-flex items-center justify-center gap-2.5 bg-white/10 hover:bg-white/20 text-white font-semibold text-sm sm:text-base px-5 sm:px-6 py-3.5 sm:py-4 rounded-full backdrop-blur-md border border-white/20 transition-all duration-200 hover:-translate-y-0.5 group"
+              >
+                <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Play className="w-3 h-3 text-white fill-current ml-0.5" />
+                </span>
+                <span>Como Funciona</span>
               </a>
             </div>
 
-            {/* Trust Micro-Bullets */}
-            <div className="pt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 text-slate-200 text-xs sm:text-sm">
+            {/* Trust Micro-Bullets (Desktop) */}
+            <div className="hidden lg:grid pt-4 grid-cols-3 gap-3 text-slate-200 text-xs sm:text-sm">
               <div className="flex items-center gap-2">
-                <MessageCircle className="w-4 h-4 text-white shrink-0" />
-                <span><strong className="text-white">Simulação gratuita</strong><br /><span className="text-slate-300">Sem compromisso</span></span>
+                <MessageCircle className="w-4 h-4 text-theme-primary shrink-0" />
+                <span><strong className="text-white">Simulação gratuita</strong><br /><span className="text-slate-400">Sem compromisso</span></span>
               </div>
               <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-white shrink-0" />
-                <span><strong className="text-white">Atendimento local</strong><br /><span className="text-slate-300">Alto Tietê e região</span></span>
+                <MapPin className="w-4 h-4 text-theme-primary shrink-0" />
+                <span><strong className="text-white">Atendimento local</strong><br /><span className="text-slate-400">Alto Tietê e região</span></span>
               </div>
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-white shrink-0" />
-                <span><strong className="text-white">Equipe especializada</strong><br /><span className="text-slate-300">Do projeto à instalação</span></span>
+                <ShieldCheck className="w-4 h-4 text-theme-primary shrink-0" />
+                <span><strong className="text-white">Equipe especializada</strong><br /><span className="text-slate-400">Do projeto à instalação</span></span>
               </div>
             </div>
 
           </div>
 
-          {/* Right Column: Lead-First Interactive Simulator Card */}
-          <div className="lg:col-span-5" id="simulador">
-            <div className="relative bg-white text-slate-900 rounded-[28px] p-6 sm:p-7 shadow-2xl shadow-black/60 border border-slate-100 max-w-md mx-auto lg:ml-auto">
+          {/* Mobile Spacer: Respiro suave antes do card da calculadora */}
+          <div className="lg:hidden h-8 sm:h-12 w-full pointer-events-none" />
+
+          {/* Right Column: Lead-First Interactive Simulator Card (Pushed far to the right) */}
+          <div className="w-full lg:max-w-[420px] xl:max-w-[460px] shrink-0 lg:ml-auto" id="simulador">
+            <div className="relative bg-white text-slate-900 rounded-[32px] p-6 sm:p-7 shadow-2xl shadow-black/50 border border-slate-100 transition-all">
 
               {/* Card Header */}
               <div className="flex items-center gap-3.5 mb-5">
@@ -278,19 +394,6 @@ export default function Hero() {
           </div>
 
         </div>
-      </div>
-
-      {/* Cursive Decorative Phrase in Bottom Right Patio */}
-      <div className="hidden lg:block absolute bottom-28 xl:bottom-32 right-8 sm:right-12 xl:right-24 z-20 pointer-events-none select-none text-right">
-        <p className="font-['Caveat',cursive] text-2xl sm:text-3xl text-white font-bold tracking-wide drop-shadow-md">
-          Mais economia<br />
-          <span className="relative inline-block">
-            para o seu futuro.
-            <svg className="absolute -bottom-2 left-0 w-full h-2.5 text-emerald-400" viewBox="0 0 160 12" fill="none">
-              <path d="M2 9C50 3 110 3 158 9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-            </svg>
-          </span>
-        </p>
       </div>
 
       {/* Organic White Wave Divider into White Background Section */}

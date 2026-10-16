@@ -30,35 +30,39 @@ export default function TrustBar() {
   ];
 
   return (
-    <section className="bg-white pt-6 pb-12 sm:pt-8 sm:pb-16 relative z-20">
+    <section className="bg-white pt-2 pb-12 sm:pt-4 sm:pb-16 relative z-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6">
-          {trustItems.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <div 
-                key={index} 
-                className="flex items-start gap-4 p-2 transition-transform hover:-translate-y-0.5"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-theme-accent-light border border-theme-accent-border flex items-center justify-center shrink-0 text-theme-primary">
-                  <Icon className="w-6 h-6 stroke-[2]" />
-                </div>
-                <div>
-                  <div className="flex flex-col">
-                    <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
-                      {item.title}
-                    </span>
-                    <span className="text-sm font-bold text-slate-800 -mt-0.5">
-                      {item.subtitle}
-                    </span>
+        <div className="bg-slate-50/90 rounded-[28px] sm:rounded-[36px] p-6 sm:p-8 lg:p-9 border border-slate-200/80 shadow-lg shadow-slate-200/40">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 divide-y sm:divide-y-0 lg:divide-x divide-slate-200/60">
+            {trustItems.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <div 
+                  key={index} 
+                  className={`flex items-start gap-4 transition-transform hover:-translate-y-0.5 ${
+                    index > 0 ? 'pt-4 sm:pt-0 lg:pl-6' : ''
+                  }`}
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-theme-accent-light border border-theme-accent-border flex items-center justify-center shrink-0 text-theme-primary">
+                    <Icon className="w-6 h-6 stroke-[2]" />
                   </div>
-                  <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-snug">
-                    {item.description}
-                  </p>
+                  <div>
+                    <div className="flex flex-col">
+                      <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
+                        {item.title}
+                      </span>
+                      <span className="text-sm font-bold text-slate-800 -mt-0.5">
+                        {item.subtitle}
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-snug">
+                      {item.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
