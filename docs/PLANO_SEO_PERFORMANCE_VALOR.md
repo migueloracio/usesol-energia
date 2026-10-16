@@ -55,7 +55,7 @@ Este documento detalha o checklist de tarefas das **3 grandes frentes de atuaç�
   - Adicionado catálogo completo de serviços (`hasOfferCatalog`: Residencial, Comercial e Homologação).
 - [x] **2.2. Sincronização do Schema `FAQPage` com o Componente Visual:**
   - Sincronizadas todas as 7 perguntas e respostas reais de [`FAQSection.jsx`](file:///e:/UseSol%20Energia/src/components/FAQSection.jsx) no bloco JSON-LD.
-  - Respostas detalhadas com prazos, garantias de 25 anos e percentual de economia de 95% para Position Zero do Google e citação por IA.
+  - Respostas detalhadas com prazos, garantias de 15 anos de fábrica e percentual de economia de 95% para Position Zero do Google e citação por IA.
 - [x] **2.3. Implementação de Schema `Service`, `WebSite` e `AggregateRating`:**
   - Inserido objeto `WebSite` com descrição contextualizada.
   - Validado `AggregateRating` com 4.9 estrelas e 128 clientes avaliados no Alto Tietê.

@@ -27,7 +27,7 @@ export default function FAQSection() {
     },
     {
       q: "Quanto tempo dura um painel solar e qual a garantia?",
-      a: "Os módulos solares possuem garantia de performance de até 25 anos dada pelos fabricantes (gerando mais de 80% da sua capacidade original após 25 anos). A instalação executada pela equipe técnica da Use Sol possui garantia de 1 ano com suporte de pós-venda dedicado."
+      a: "Os módulos solares possuem garantia de fábrica de até 15 anos dada pelos fabricantes (com durabilidade e vida útil projetada para mais de 25 anos). A instalação executada pela equipe técnica da Use Sol possui garantia de 1 ano com suporte de pós-venda dedicado."
     },
     {
       q: "Quais cidades a Use Sol atende?",

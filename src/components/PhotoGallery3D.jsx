@@ -53,7 +53,7 @@ const galleryItems = [
   },
   {
     src: '/img%20e%20videos/WhatsApp%20Image%202026-10-10%20at%2013.26.14.jpeg',
-    title: 'Garantia de 25 Anos nos Painéis',
+    title: 'Garantia de 15 Anos nos Painéis',
     location: 'Região Metropolitana - SP',
     highlight: 'Equipamentos Tier 1 Certificados pelo Inmetro',
     economy: 'Economia média: R$ 1.150/mês'
