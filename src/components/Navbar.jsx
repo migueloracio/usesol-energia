@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Logo from './Logo';
-import { MessageCircle, Menu, X, ChevronDown } from 'lucide-react';
+import { MessageCircle, Menu, X, ChevronDown, FileText, Lock, LayoutDashboard } from 'lucide-react';
 
-export default function Navbar() {
+export default function Navbar({ onOpenProposal, user }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -15,6 +15,16 @@ export default function Navbar() {
   }, []);
 
   const whatsappUrl = "https://wa.me/5511994333471?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20Use%20Sol%20e%20gostaria%20de%20falar%20com%20um%20especialista.";
+
+  const handleOpenProposal = (e) => {
+    e.preventDefault();
+    if (onOpenProposal) {
+      onOpenProposal();
+    } else {
+      window.location.hash = '#proposta';
+    }
+    setMobileMenuOpen(false);
+  };
 
   return (
     <header 
@@ -59,8 +69,31 @@ export default function Navbar() {
             </a>
           </nav>
 
-          {/* Controls: Desktop CTA */}
+          {/* Controls: Desktop CTA & Proposal Preview */}
           <div className="flex items-center gap-2 sm:gap-3">
+            
+            {/* Acesso ao Painel do Consultor */}
+            <a
+              href="#painel"
+              className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full transition-all duration-200 ${
+                user
+                  ? 'bg-amber-400 text-slate-950 hover:bg-amber-300 shadow-md'
+                  : 'bg-slate-900/80 hover:bg-slate-800 text-amber-300 border border-amber-400/40 hover:border-amber-400'
+              }`}
+              title={user ? 'Acessar Painel de Propostas' : 'Área Restrita do Consultor (Login)'}
+            >
+              {user ? (
+                <>
+                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  <span>Meu Painel</span>
+                </>
+              ) : (
+                <>
+                  <Lock className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Área Consultor</span>
+                </>
+              )}
+            </a>
 
             {/* Desktop CTA Button */}
             <div className="hidden sm:flex items-center gap-4">
@@ -90,6 +123,17 @@ export default function Navbar() {
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
           <div className="lg:hidden mt-4 pb-6 pt-3 px-4 rounded-2xl bg-[#02140D]/95 backdrop-blur-xl border border-emerald-900/60 shadow-2xl flex flex-col gap-3">
+            <a 
+              href="#proposta"
+              onClick={handleOpenProposal}
+              className="px-3 py-2 rounded-lg text-base font-bold text-amber-300 bg-amber-400/10 border border-amber-400/30 flex items-center justify-between"
+            >
+              <span className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-amber-400" />
+                <span>Modelo de Proposta Executiva</span>
+              </span>
+              <span className="text-[10px] uppercase font-bold bg-amber-400 text-slate-950 px-2 py-0.5 rounded">Novo</span>
+            </a>
             <a 
               href="#inicio" 
               onClick={() => setMobileMenuOpen(false)}

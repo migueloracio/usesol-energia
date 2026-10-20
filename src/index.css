@@ -88,3 +88,41 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: #EA8815;
 }
+
+/* Regras de Impressão de Alta Qualidade para a Proposta Orçamentária */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+  
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .proposal-page {
+    page-break-after: always !important;
+    break-after: page !important;
+    min-height: 280mm !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 18mm 14mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+
+  .proposal-page:last-child {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+}

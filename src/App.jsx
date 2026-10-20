@@ -1,7 +1,11 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import TrustBar from './components/TrustBar';
+import ProposalView from './components/ProposalView';
+import ProposalDashboard from './components/ProposalDashboard';
+import ProposalLogin from './components/ProposalLogin';
+import { supabase } from './lib/supabase';
 import { ThemeProvider } from './context/ThemeContext';
 
 // Below-the-fold dynamic imports for bundle optimization and instant LCP
@@ -17,11 +21,121 @@ const Footer = lazy(() => import('./components/Footer'));
 const FloatingWhatsApp = lazy(() => import('./components/FloatingWhatsApp'));
 
 export default function App() {
+  const [user, setUser] = useState(null);
+  const [selectedProposal, setSelectedProposal] = useState(null);
+
+  const determineViewFromHash = () => {
+    if (typeof window === 'undefined') return 'home';
+    const hash = window.location.hash;
+    if (hash.startsWith('#proposta')) return 'proposal';
+    if (hash === '#painel' || hash === '#login') return 'dashboard';
+    return 'home';
+  };
+
+  const [currentView, setCurrentView] = useState(determineViewFromHash);
+
+  // Monitorar autenticação Supabase
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user || null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Monitorar mudanças de URL/Hash
+  useEffect(() => {
+    const handleHash = () => {
+      const view = determineViewFromHash();
+      setCurrentView(view);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    window.location.hash = '';
+    setCurrentView('home');
+  };
+
+  // 1. Rota de Proposta (/ #proposta ou #proposta?id=...)
+  if (currentView === 'proposal') {
+    return (
+      <ThemeProvider>
+        <ProposalView
+          initialData={selectedProposal}
+          isConsultant={Boolean(user)}
+          onBack={() => {
+            if (user) {
+              window.location.hash = '#painel';
+              setCurrentView('dashboard');
+            } else {
+              window.location.hash = '';
+              setCurrentView('home');
+            }
+          }}
+        />
+      </ThemeProvider>
+    );
+  }
+
+  // 2. Rota do Painel do Consultor / Login (/ #painel)
+  if (currentView === 'dashboard') {
+    if (!user) {
+      return (
+        <ThemeProvider>
+          <ProposalLogin
+            onLoginSuccess={(loggedUser) => {
+              setUser(loggedUser);
+            }}
+            onBack={() => {
+              window.location.hash = '';
+              setCurrentView('home');
+            }}
+          />
+        </ThemeProvider>
+      );
+    }
+
+    return (
+      <ThemeProvider>
+        <ProposalDashboard
+          user={user}
+          onLogout={handleLogout}
+          onViewProposal={(prop) => {
+            setSelectedProposal(prop);
+            window.location.hash = `#proposta?id=${prop.id}`;
+            setCurrentView('proposal');
+          }}
+          onBackToSite={() => {
+            window.location.hash = '';
+            setCurrentView('home');
+          }}
+        />
+      </ThemeProvider>
+    );
+  }
+
+  // 3. Landing Page Principal
   return (
     <ThemeProvider>
       <div className="min-h-screen bg-white text-slate-800 flex flex-col font-sans selection:bg-amber-500 selection:text-white transition-colors duration-300">
         {/* Top Header Navigation */}
-        <Navbar />
+        <Navbar
+          onOpenProposal={() => {
+            window.location.hash = user ? '#painel' : '#proposta';
+            setCurrentView(user ? 'dashboard' : 'proposal');
+          }}
+          user={user}
+        />
 
         {/* Main Content Area */}
         <main className="flex-grow">
