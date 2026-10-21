@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase.js';
 
 export const MASTER_EMAILS = [
   'gouloalex@gmail.com'
@@ -16,11 +17,8 @@ export function isMasterUser(user) {
  * Permite ao Master cadastrar novos consultores sem deslogar da sua sessão atual
  */
 export async function cadastrarNovoConsultor({ email, password, nome }) {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
   // Cria cliente temporário isolado sem persistência de sessão
-  const tempClient = createClient(supabaseUrl, supabaseAnonKey, {
+  const tempClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
