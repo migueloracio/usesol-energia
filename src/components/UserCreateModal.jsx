@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, UserPlus, Mail, Lock, User, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, UserPlus, Mail, Lock, User, CheckCircle2, AlertCircle, Copy, Check } from 'lucide-react';
 import { cadastrarNovoConsultor } from '../lib/auth';
 
 export default function UserCreateModal({ onClose, onUserCreated }) {
@@ -9,6 +9,23 @@ export default function UserCreateModal({ onClose, onUserCreated }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyWhatsApp = () => {
+    const msg = `☀️ *UseSol Energia - Acesso ao Painel de Propostas*
+
+Olá *${nome || 'Consultor'}*,
+Seu acesso ao Painel UseSol foi liberado:
+
+📧 *Login:* ${email}
+🔑 *Senha Inicial:* ${password}
+
+👉 Acesse em: https://usesolenergia.com/#painel`;
+
+    navigator.clipboard.writeText(msg);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -86,12 +103,29 @@ export default function UserCreateModal({ onClose, onUserCreated }) {
               </div>
 
               <p className="text-[11px] text-slate-500 italic">
-                * Informe esses dados ao novo consultor para ele acessar em usesol.com.br/#painel
+                * Informe esses dados ao novo consultor para ele acessar em usesolenergia.com/#painel
               </p>
 
               <button
+                onClick={handleCopyWhatsApp}
+                className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 shadow-md"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>Mensagem Copiada!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    <span>Copiar Dados para WhatsApp</span>
+                  </>
+                )}
+              </button>
+
+              <button
                 onClick={onClose}
-                className="w-full bg-theme-primary hover:bg-theme-primary-hover text-slate-950 font-bold text-xs py-2.5 rounded-xl transition shadow-md"
+                className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs py-2.5 rounded-xl transition"
               >
                 Concluir
               </button>
@@ -129,7 +163,7 @@ export default function UserCreateModal({ onClose, onUserCreated }) {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="consultor@usesol.com.br"
+                    placeholder="consultor@usesolenergia.com"
                     className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-white placeholder-slate-500 focus:border-amber-400 outline-none"
                   />
                 </div>

@@ -106,11 +106,11 @@ export default function ProposalView({ onBack, propostaId, initialData, isConsul
   // Cálculos dinâmicos
   const economiaMensal = data.financeiro.contaAtualMensal - data.financeiro.contaNovaMensal;
   const economia1Ano = economiaMensal * 12;
-  const economia25Anos = (data.financeiro.contaAtualMensal * 12 * 25) - (data.financeiro.contaNovaMensal * 12 * 25);
+  const economia15Anos = (data.financeiro.contaAtualMensal * 12 * 15) - (data.financeiro.contaNovaMensal * 12 * 15);
   const valorPix = data.financeiro.investimentoTotal * (1 - data.financeiro.descontoPixPct / 100);
 
-  // Dados para o gráfico de 25 anos (com inflação energética estimada de 6% a.a.)
-  const yearsData = [1, 3, 5, 8, 10, 15, 20, 25].map((ano) => {
+  // Dados para o gráfico de 15 anos (com inflação energética estimada de 6% a.a.)
+  const yearsData = [1, 2, 3, 5, 8, 10, 12, 15].map((ano) => {
     // Estimativa acumulada com ajuste inflacionário médio
     const fatorInflacao = Math.pow(1.055, ano / 2);
     const acumulado = Math.round(economia1Ano * ano * fatorInflacao);
@@ -118,7 +118,27 @@ export default function ProposalView({ onBack, propostaId, initialData, isConsul
   });
   const maxYearVal = yearsData[yearsData.length - 1].valor;
 
+  // Nome padronizado para o PDF e título da página (ex: "Proposta 5797-2026 - Teste - UseSol Energia")
+  const getPdfFileName = () => {
+    const numLimpo = (data.numero || 'SN').replace(/[\/\\:*?"<>|]/g, '-').trim();
+    const clienteLimpo = (data.cliente?.nome || 'Cliente').replace(/[\/\\:*?"<>|]/g, '').trim();
+    return `Proposta ${numLimpo} - ${clienteLimpo} - UseSol Energia`;
+  };
+
+  // Atualiza o document.title para que o navegador use como nome padrão ao Salvar como PDF
+  useEffect(() => {
+    const originalTitle = document.title;
+    if (data) {
+      document.title = getPdfFileName();
+    }
+    return () => {
+      document.title = originalTitle;
+    };
+  }, [data?.numero, data?.cliente?.nome]);
+
   const handlePrint = () => {
+    // Garante que o título do documento esteja no padrão exato no momento da impressão/download
+    document.title = getPdfFileName();
     window.print();
   };
 
@@ -130,7 +150,7 @@ export default function ProposalView({ onBack, propostaId, initialData, isConsul
       if (match) currentId = match[1];
     }
 
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://usesol.com.br';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://usesolenergia.com';
     const proposalUrl = currentId ? `${origin}/#proposta?id=${currentId}` : `${origin}/#proposta`;
 
     // Formatar telefone do cliente se houver (ex: "(11) 99433-3471" -> "5511994333471")
@@ -489,9 +509,9 @@ export default function ProposalView({ onBack, propostaId, initialData, isConsul
                   </div>
 
                   <div className="flex justify-between items-baseline">
-                    <span className="text-xs text-slate-600">Gasto acumulado em 25 anos:</span>
+                    <span className="text-xs text-slate-600">Gasto acumulado em 15 anos:</span>
                     <strong className="text-base text-rose-800 font-black">
-                      R$ {(data.financeiro.contaAtualMensal * 12 * 25).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      R$ {(data.financeiro.contaAtualMensal * 12 * 15).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </strong>
                   </div>
                 </div>
@@ -527,9 +547,9 @@ export default function ProposalView({ onBack, propostaId, initialData, isConsul
                   </div>
 
                   <div className="flex justify-between items-baseline">
-                    <span className="text-xs text-slate-600">Gasto residual em 25 anos:</span>
+                    <span className="text-xs text-slate-600">Gasto residual em 15 anos:</span>
                     <strong className="text-base text-emerald-800 font-black">
-                      R$ {(data.financeiro.contaNovaMensal * 12 * 25).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      R$ {(data.financeiro.contaNovaMensal * 12 * 15).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </strong>
                   </div>
                 </div>
@@ -562,10 +582,10 @@ export default function ProposalView({ onBack, propostaId, initialData, isConsul
             <div className="bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-xl p-5 shadow-lg flex items-center justify-between">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-emerald-100 block">
-                  Economia Acumulada em 25 Anos
+                  Economia Acumulada em 15 Anos
                 </span>
                 <div className="text-3xl font-black tracking-tight text-white mt-1">
-                  R$ {economia25Anos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  R$ {economia15Anos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </div>
                 <span className="text-xs text-emerald-100 font-medium block mt-0.5">
                   Patrimônio que fica no seu bolso em vez de ir para a concessionária.
@@ -578,12 +598,12 @@ export default function ProposalView({ onBack, propostaId, initialData, isConsul
 
           </div>
 
-          {/* Gráfico Moderno de Projeção Acumulada (Substituindo o gráfico antigo do Excel) */}
+          {/* Gráfico Moderno de Projeção Acumulada */}
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 my-4">
             <div className="flex items-center justify-between mb-3">
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
-                  Evolução do Saldo Economizado Acumulado (Anos 1 a 25)
+                  Evolução do Saldo Economizado Acumulado (Anos 1 a 15)
                 </h3>
                 <p className="text-[11px] text-slate-400">Projeção estimada considerando a curva de vida útil dos equipamentos</p>
               </div>
@@ -613,9 +633,9 @@ export default function ProposalView({ onBack, propostaId, initialData, isConsul
               })}
             </div>
             <div className="flex flex-col sm:flex-row justify-between items-center text-[9px] sm:text-[10px] text-slate-400 mt-2 px-1 text-center sm:text-left gap-1">
-              <span>Investimento Quitado ~2.9 anos</span>
+              <span>Investimento Quitado ~{data.financeiro.paybackAnos} anos</span>
               <span>Economia direta e blindagem contra bandeiras tarifárias</span>
-              <span>25+ Anos de Vida Útil</span>
+              <span>Projeção de 15 Anos de Economia Real</span>
             </div>
           </div>
 
@@ -660,7 +680,11 @@ export default function ProposalView({ onBack, propostaId, initialData, isConsul
                 <span className="text-2xl font-black text-slate-900">{data.dimensionamento.qtdPaineis}</span>
                 <span className="text-xs font-bold text-amber-500 ml-1">Painéis</span>
               </div>
-              <span className="text-[10px] text-slate-500">Módulos Bifaciais 590W</span>
+              <span className="text-[10px] text-slate-500">
+                {data.dimensionamento.modulos && data.dimensionamento.modulos.length > 0
+                  ? `Módulos ${data.dimensionamento.modulos.map((m) => `${m.potenciaW}W`).join(' + ')}`
+                  : 'Módulos Bifaciais'}
+              </span>
             </div>
 
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
@@ -730,36 +754,83 @@ export default function ProposalView({ onBack, propostaId, initialData, isConsul
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 bg-white">
-                  <tr className="hover:bg-slate-50">
-                    <td className="py-2.5 px-3 font-bold text-slate-800">
-                      Módulos Solares Fotovoltaicos
-                    </td>
-                    <td className="py-2.5 px-2 text-center font-bold text-amber-600">
-                      {data.dimensionamento.qtdPaineis}
-                    </td>
-                    <td className="py-2.5 px-3 text-slate-600">
-                      Bifacial 144 Células 590W N-Type Tier-1 (Vidro Duplo)
-                    </td>
-                    <td className="py-2.5 px-3 text-right font-bold text-emerald-700">
-                      15 Anos Produto<br />
-                      <span className="text-[10px] text-slate-400 font-normal">25 Anos Performance Linear</span>
-                    </td>
-                  </tr>
+                  {/* Módulos Solares Fotovoltaicos (Dinâmico para múltiplos modelos ou legado) */}
+                  {data.dimensionamento.modulos && data.dimensionamento.modulos.length > 0 ? (
+                    data.dimensionamento.modulos.map((mod, idx) => (
+                      <tr key={`mod-${idx}`} className="hover:bg-slate-50">
+                        <td className="py-2.5 px-3 font-bold text-slate-800">
+                          Módulos Fotovoltaicos Solar
+                          {data.dimensionamento.modulos.length > 1 && (
+                            <span className="text-[10px] text-amber-600 block font-normal">Lote 0{idx + 1}</span>
+                          )}
+                        </td>
+                        <td className="py-2.5 px-2 text-center font-bold text-amber-600">
+                          {mod.quantidade}
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-600">
+                          Bifacial 144 Células {mod.potenciaW}W N-Type Tier-1 (Vidro Duplo) — {((mod.quantidade * mod.potenciaW) / 1000).toFixed(2)} kWp
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-bold text-emerald-700">
+                          15 Anos Produto<br />
+                          <span className="text-[10px] text-slate-400 font-normal">25 Anos Performance Linear</span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr className="hover:bg-slate-50">
+                      <td className="py-2.5 px-3 font-bold text-slate-800">
+                        Módulos Solares Fotovoltaicos
+                      </td>
+                      <td className="py-2.5 px-2 text-center font-bold text-amber-600">
+                        {data.dimensionamento.qtdPaineis}
+                      </td>
+                      <td className="py-2.5 px-3 text-slate-600">
+                        {data.dimensionamento.modeloPainel || 'Bifacial 144 Células 590W N-Type Tier-1 (Vidro Duplo)'}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-bold text-emerald-700">
+                        15 Anos Produto<br />
+                        <span className="text-[10px] text-slate-400 font-normal">25 Anos Performance Linear</span>
+                      </td>
+                    </tr>
+                  )}
 
-                  <tr className="hover:bg-slate-50">
-                    <td className="py-2.5 px-3 font-bold text-slate-800">
-                      Inversor Solar On-Grid
-                    </td>
-                    <td className="py-2.5 px-2 text-center font-bold text-amber-600">
-                      01
-                    </td>
-                    <td className="py-2.5 px-3 text-slate-600">
-                      7.0kW 220V 2-MPPT com Antena Wi-Fi integrada e App de celular
-                    </td>
-                    <td className="py-2.5 px-3 text-right font-bold text-emerald-700">
-                      10 Anos de Fábrica
-                    </td>
-                  </tr>
+                  {/* Inversores / Microinversores (Dinâmico para múltiplos inversores ou legado) */}
+                  {data.dimensionamento.inversores && data.dimensionamento.inversores.length > 0 ? (
+                    data.dimensionamento.inversores.map((inv, idx) => (
+                      <tr key={`inv-${idx}`} className="hover:bg-slate-50">
+                        <td className="py-2.5 px-3 font-bold text-slate-800">
+                          {inv.tipo === 'Microinversor' ? 'Microinversor Solar' : 'Inversor Solar On-Grid'}
+                          {data.dimensionamento.inversores.length > 1 && (
+                            <span className="text-[10px] text-amber-600 block font-normal">Unidade 0{idx + 1}</span>
+                          )}
+                        </td>
+                        <td className="py-2.5 px-2 text-center font-bold text-amber-600">
+                          {String(inv.quantidade).padStart(2, '0')}
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-600">
+                          {inv.tipo} {inv.potenciaKw}kW • {inv.tensao} com Antena Wi-Fi integrada e App de celular
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-bold text-emerald-700">
+                          {inv.tipo === 'Microinversor' ? '12 a 25 Anos de Fábrica' : '10 Anos de Fábrica'}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr className="hover:bg-slate-50">
+                      <td className="py-2.5 px-3 font-bold text-slate-800">
+                        Inversor Solar On-Grid
+                      </td>
+                      <td className="py-2.5 px-2 text-center font-bold text-amber-600">
+                        01
+                      </td>
+                      <td className="py-2.5 px-3 text-slate-600">
+                        {data.dimensionamento.modeloInversor || 'Inversor String Inteligente Wi-Fi'}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-bold text-emerald-700">
+                        10 Anos de Fábrica
+                      </td>
+                    </tr>
+                  )}
 
                   <tr className="hover:bg-slate-50">
                     <td className="py-2.5 px-3 font-bold text-slate-800">
@@ -987,7 +1058,7 @@ export default function ProposalView({ onBack, propostaId, initialData, isConsul
 
           {/* Paginação */}
           <div className="text-right text-[10px] text-slate-400 pt-4 border-t border-slate-100 mt-4 flex justify-between items-center">
-            <span>UseSol Energia Renovável • www.usesol.com.br • Alto Tietê - SP</span>
+            <span>UseSol Energia Renovável • www.usesolenergia.com • Alto Tietê - SP</span>
             <span>Página 04 / 04</span>
           </div>
         </article>

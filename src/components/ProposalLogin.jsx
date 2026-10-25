@@ -115,7 +115,7 @@ export default function ProposalLogin({ onLoginSuccess, onBack }) {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="consultor@usesol.com.br"
+                  placeholder="consultor@usesolenergia.com"
                   className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none transition"
                 />
               </div>

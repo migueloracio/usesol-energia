@@ -10,9 +10,149 @@ import {
   DollarSign,
   CheckCircle2,
   CreditCard,
-  Building
+  Building,
+  Plus,
+  Trash2,
+  Cpu,
+  SunMedium,
+  Shield,
+  Layers
 } from 'lucide-react';
 import { criarProposta, atualizarProposta } from '../lib/propostas';
+
+// Potências de módulos de 425W a 700W de 5 em 5W
+export const OPCOES_POTENCIA_MODULOS = [];
+for (let w = 425; w <= 700; w += 5) {
+  OPCOES_POTENCIA_MODULOS.push(w);
+}
+
+// Inversores de 1kW a 75kW
+export const OPCOES_POTENCIA_INVERSOR = [];
+for (let kw = 1; kw <= 75; kw++) {
+  OPCOES_POTENCIA_INVERSOR.push(kw);
+}
+
+// Potências para microinversores
+export const OPCOES_POTENCIA_MICRO = [
+  1, 1.2, 1.5, 1.6, 1.8, 2, 2.25, 2.5, 3, 4, 5
+];
+
+// Tensões de rede para inversores
+export const TENSOES_INVERSOR = [
+  'Monofásico 220V',
+  'Trifásico 220V',
+  'Trifásico 380V',
+  'Trifásico 400V',
+  'Trifásico 800V'
+];
+
+// Tensões para microinversores (exclusivamente 220V)
+export const TENSOES_MICRO = [
+  'Monofásico / Bifásico 220V'
+];
+
+export function normalizarDimensionamento(dim) {
+  if (!dim) dim = {};
+  
+  let modulos = dim.modulos;
+  if (!Array.isArray(modulos) || modulos.length === 0) {
+    const qtd = Number(dim.qtdPaineis) || 12;
+    let pot = 590;
+    if (dim.modeloPainel) {
+      const match = dim.modeloPainel.match(/(\d{3})\s*W/i);
+      if (match) {
+        const p = parseInt(match[1], 10);
+        if (p >= 425 && p <= 700) pot = p;
+      }
+    }
+    modulos = [
+      {
+        id: 'mod-1',
+        quantidade: qtd,
+        potenciaW: pot,
+        modelo: 'Módulo Fotovoltaico Bifacial N-Type'
+      }
+    ];
+  }
+
+  let inversores = dim.inversores;
+  if (!Array.isArray(inversores) || inversores.length === 0) {
+    let tipo = 'Inversor';
+    let pot = 7;
+    let tensao = 'Monofásico 220V';
+
+    if (dim.modeloInversor) {
+      if (/micro/i.test(dim.modeloInversor)) {
+        tipo = 'Microinversor';
+        tensao = 'Monofásico / Bifásico 220V';
+      }
+      const matchKw = dim.modeloInversor.match(/(\d+(\.\d+)?)\s*kW/i);
+      if (matchKw) pot = parseFloat(matchKw[1]) || 7;
+      if (/380/i.test(dim.modeloInversor)) tensao = 'Trifásico 380V';
+      else if (/400/i.test(dim.modeloInversor)) tensao = 'Trifásico 400V';
+      else if (/800/i.test(dim.modeloInversor)) tensao = 'Trifásico 800V';
+      else if (/trif[aá]sico/i.test(dim.modeloInversor)) tensao = 'Trifásico 220V';
+    } else if (dim.potenciaKwp) {
+      pot = Math.max(1, Math.min(75, Math.ceil(dim.potenciaKwp)));
+    }
+
+    inversores = [
+      {
+        id: 'inv-1',
+        tipo,
+        quantidade: 1,
+        potenciaKw: pot,
+        tensao: tipo === 'Microinversor' ? 'Monofásico / Bifásico 220V' : tensao
+      }
+    ];
+  }
+
+  return {
+    ...dim,
+    modulos,
+    inversores
+  };
+}
+
+export const recalcularTotaisModulos = (listaModulos) => {
+  const totalPlacas = (listaModulos || []).reduce((acc, m) => acc + (Number(m.quantidade) || 0), 0);
+  const totalWatts = (listaModulos || []).reduce((acc, m) => acc + ((Number(m.quantidade) || 0) * (Number(m.potenciaW) || 0)), 0);
+  const potenciaKwp = Number((totalWatts / 1000).toFixed(2));
+  const areaNecessariaM2 = Math.round(totalPlacas * 2.2);
+  const geracaoMensalKwh = Math.round(potenciaKwp * 84.7);
+  const geracaoAnualKwh = geracaoMensalKwh * 12;
+
+  let resumoPainel = '';
+  if (!listaModulos || listaModulos.length === 0) {
+    resumoPainel = 'Módulos Solares Fotovoltaicos';
+  } else if (listaModulos.length === 1) {
+    resumoPainel = `${listaModulos[0].quantidade}x Módulo Fotovoltaico Bifacial ${listaModulos[0].potenciaW}W N-Type Tier-1`;
+  } else {
+    resumoPainel = listaModulos
+      .map((m) => `${m.quantidade}x ${m.potenciaW}W`)
+      .join(' + ');
+  }
+
+  return {
+    totalPlacas,
+    totalWatts,
+    potenciaKwp,
+    areaNecessariaM2,
+    geracaoMensalKwh,
+    geracaoAnualKwh,
+    resumoPainel
+  };
+};
+
+export const recalcularResumoInversores = (listaInversores) => {
+  if (!listaInversores || listaInversores.length === 0) return '';
+  return listaInversores
+    .map((inv) => {
+      const qtdStr = inv.quantidade > 1 ? `${inv.quantidade}x ` : '';
+      return `${qtdStr}${inv.tipo} ${inv.potenciaKw}kW ${inv.tensao}`;
+    })
+    .join(' + ');
+};
 
 export default function ProposalFormModal({ initialData, onClose, onSaved }) {
   const isEditing = Boolean(initialData?.id);
@@ -22,61 +162,84 @@ export default function ProposalFormModal({ initialData, onClose, onSaved }) {
 
   // Estado do formulário
   const [form, setForm] = useState(() => {
-    if (initialData?.dados) {
-      return initialData.dados;
-    }
+    let baseData = initialData?.dados ? JSON.parse(JSON.stringify(initialData.dados)) : null;
     const currentYear = new Date().getFullYear();
     const randomNum = Math.floor(1000 + Math.random() * 9000);
-    return {
-      numero: initialData?.numero || `${randomNum}/${currentYear}`,
-      dataEmissao: new Date().toLocaleDateString('pt-BR'),
-      validadeDias: 30,
-      cliente: {
-        nome: initialData?.cliente_nome || '',
-        cpfCnpj: '',
-        telefone: initialData?.cliente_telefone || '',
-        endereco: '',
-        bairro: '',
-        cidade: initialData?.cliente_cidade || 'Ferraz de Vasconcelos',
-        uf: 'SP',
-        tipoTelhado: 'Telha Colonial Cerâmica',
-        orientacao: 'Norte / Noroeste',
-        segmento: 'Residencial'
-      },
-      dimensionamento: {
-        potenciaKwp: initialData?.potencia_kwp || 7.08,
-        qtdPaineis: 12,
-        modeloPainel: 'Módulo Fotovoltaico Bifacial 590W N-Type Tier-1',
-        garantiaPainel: '15 anos produto / 25 anos performance linear (84.8%)',
-        modeloInversor: 'Inversor String 7.0kW 220V 2-MPPT Inteligente Wi-Fi',
-        garantiaInversor: '10 anos de garantia de fábrica',
-        geracaoMensalKwh: 600,
-        geracaoAnualKwh: 7200,
-        areaNecessariaM2: 28,
-        coberturaConsumo: 100,
-        expansaoFutura: 'Permite expansão de até 4 módulos adicionais no mesmo inversor'
-      },
-      financeiro: {
-        contaAtualMensal: 600.0,
-        contaNovaMensal: 65.0,
-        investimentoTotal: initialData?.valor_investimento || 18900.0,
-        descontoPixPct: 5,
-        paybackAnos: 2.9,
-        parcelamentoCartao: [
-          { vezes: 3, valor: 6773.62 },
-          { vezes: 6, valor: 3538.54 },
-          { vezes: 12, valor: 1848.90 }
-        ],
-        financiamentoBancario: [
-          { banco: 'Santander / BV', vezes: 60, valorAprox: 485.0, carencia: 'Até 120 dias' },
-          { banco: 'Santander / BV', vezes: 84, valorAprox: 395.0, carencia: 'Até 120 dias' }
-        ]
-      },
-      prazos: {
-        entregaProjeto: 'Até 10 dias após entrega documental e assinatura',
-        instalacaoHomologacao: 'Até 45 a 60 dias (vistoria e troca de medidor pela concessionária)'
-      }
-    };
+
+    if (!baseData) {
+      baseData = {
+        numero: initialData?.numero || `${randomNum}/${currentYear}`,
+        dataEmissao: new Date().toLocaleDateString('pt-BR'),
+        validadeDias: 30,
+        cliente: {
+          nome: initialData?.cliente_nome || '',
+          cpfCnpj: '',
+          telefone: initialData?.cliente_telefone || '',
+          endereco: '',
+          bairro: '',
+          cidade: initialData?.cliente_cidade || 'Ferraz de Vasconcelos',
+          uf: 'SP',
+          tipoTelhado: 'Telha Colonial Cerâmica',
+          orientacao: 'Norte / Noroeste',
+          segmento: 'Residencial'
+        },
+        dimensionamento: {
+          potenciaKwp: initialData?.potencia_kwp || 7.08,
+          qtdPaineis: 12,
+          modeloPainel: '12x Módulo Fotovoltaico Bifacial 590W N-Type Tier-1',
+          garantiaPainel: '15 anos produto / 25 anos performance linear (84.8%)',
+          modeloInversor: 'Inversor 7kW Monofásico 220V',
+          garantiaInversor: '10 anos de garantia de fábrica',
+          geracaoMensalKwh: 600,
+          geracaoAnualKwh: 7200,
+          areaNecessariaM2: 26,
+          coberturaConsumo: 100,
+          expansaoFutura: 'Permite expansão de até 4 módulos adicionais no mesmo inversor',
+          modulos: [
+            {
+              id: 'mod-1',
+              quantidade: 12,
+              potenciaW: 590,
+              modelo: 'Módulo Fotovoltaico Bifacial N-Type'
+            }
+          ],
+          inversores: [
+            {
+              id: 'inv-1',
+              tipo: 'Inversor',
+              quantidade: 1,
+              potenciaKw: 7,
+              tensao: 'Monofásico 220V'
+            }
+          ]
+        },
+        financeiro: {
+          contaAtualMensal: 600.0,
+          contaNovaMensal: 65.0,
+          investimentoTotal: initialData?.valor_investimento || 18900.0,
+          descontoPixPct: 5,
+          paybackAnos: 2.9,
+          parcelamentoCartao: [
+            { vezes: 3, valor: 6773.62 },
+            { vezes: 6, valor: 3538.54 },
+            { vezes: 12, valor: 1848.90 }
+          ],
+          financiamentoBancario: [
+            { banco: 'Santander / BV', vezes: 60, valorAprox: 485.0, carencia: 'Até 120 dias' },
+            { banco: 'Santander / BV', vezes: 84, valorAprox: 395.0, carencia: 'Até 120 dias' }
+          ]
+        },
+        prazos: {
+          entregaProjeto: 'Até 10 dias após entrega documental e assinatura',
+          instalacaoHomologacao: 'Até 45 a 60 dias (vistoria e troca de medidor pela concessionária)'
+        }
+      };
+    } else {
+      // Garante normalização de dimensionamento com modulos e inversores estruturados
+      baseData.dimensionamento = normalizarDimensionamento(baseData.dimensionamento);
+    }
+
+    return baseData;
   });
 
   // Atualização de campos aninhados
@@ -93,9 +256,149 @@ export default function ProposalFormModal({ initialData, onClose, onSaved }) {
   };
 
   // ============================================================
-  // MOTOR DE CÁLCULO AUTOMÁTICO EM CASCATA
+  // HANDLERS DE MÓDULOS (425W a 700W)
   // ============================================================
-  // Quando o vendedor digita o valor da conta atual de luz (ex: R$ 600):
+  const handleUpdateModulo = (index, field, value) => {
+    const updatedModulos = (form.dimensionamento.modulos || []).map((m, idx) => {
+      if (idx !== index) return m;
+      return { ...m, [field]: field === 'quantidade' || field === 'potenciaW' ? Number(value) : value };
+    });
+
+    const totais = recalcularTotaisModulos(updatedModulos);
+
+    setForm((prev) => ({
+      ...prev,
+      dimensionamento: {
+        ...prev.dimensionamento,
+        modulos: updatedModulos,
+        qtdPaineis: totais.totalPlacas,
+        potenciaKwp: totais.potenciaKwp,
+        areaNecessariaM2: totais.areaNecessariaM2,
+        geracaoMensalKwh: totais.geracaoMensalKwh,
+        geracaoAnualKwh: totais.geracaoAnualKwh,
+        modeloPainel: totais.resumoPainel
+      }
+    }));
+  };
+
+  const handleAddModulo = () => {
+    const novoModulo = {
+      id: `mod-${Date.now()}`,
+      quantidade: 4,
+      potenciaW: 590,
+      modelo: 'Módulo Fotovoltaico Bifacial N-Type'
+    };
+    const updatedModulos = [...(form.dimensionamento.modulos || []), novoModulo];
+    const totais = recalcularTotaisModulos(updatedModulos);
+
+    setForm((prev) => ({
+      ...prev,
+      dimensionamento: {
+        ...prev.dimensionamento,
+        modulos: updatedModulos,
+        qtdPaineis: totais.totalPlacas,
+        potenciaKwp: totais.potenciaKwp,
+        areaNecessariaM2: totais.areaNecessariaM2,
+        geracaoMensalKwh: totais.geracaoMensalKwh,
+        geracaoAnualKwh: totais.geracaoAnualKwh,
+        modeloPainel: totais.resumoPainel
+      }
+    }));
+  };
+
+  const handleRemoveModulo = (index) => {
+    if ((form.dimensionamento.modulos || []).length <= 1) return;
+    const updatedModulos = form.dimensionamento.modulos.filter((_, idx) => idx !== index);
+    const totais = recalcularTotaisModulos(updatedModulos);
+
+    setForm((prev) => ({
+      ...prev,
+      dimensionamento: {
+        ...prev.dimensionamento,
+        modulos: updatedModulos,
+        qtdPaineis: totais.totalPlacas,
+        potenciaKwp: totais.potenciaKwp,
+        areaNecessariaM2: totais.areaNecessariaM2,
+        geracaoMensalKwh: totais.geracaoMensalKwh,
+        geracaoAnualKwh: totais.geracaoAnualKwh,
+        modeloPainel: totais.resumoPainel
+      }
+    }));
+  };
+
+  // ============================================================
+  // HANDLERS DE INVERSORES (1kW a 75kW / Tensão)
+  // ============================================================
+  const handleUpdateInversor = (index, field, value) => {
+    const updatedInversores = (form.dimensionamento.inversores || []).map((inv, idx) => {
+      if (idx !== index) return inv;
+      const updated = {
+        ...inv,
+        [field]: field === 'quantidade' || field === 'potenciaKw' ? Number(value) : value
+      };
+      
+      // Se mudar para Microinversor, trava tensão em 220V e ajusta potência típica
+      if (field === 'tipo' && value === 'Microinversor') {
+        updated.tensao = 'Monofásico / Bifásico 220V';
+        if (updated.potenciaKw > 5) updated.potenciaKw = 2;
+      } else if (field === 'tipo' && value === 'Inversor' && updated.tensao === 'Monofásico / Bifásico 220V') {
+        updated.tensao = 'Monofásico 220V';
+        if (updated.potenciaKw < 1) updated.potenciaKw = 5;
+      }
+      return updated;
+    });
+
+    const resumoInversores = recalcularResumoInversores(updatedInversores);
+
+    setForm((prev) => ({
+      ...prev,
+      dimensionamento: {
+        ...prev.dimensionamento,
+        inversores: updatedInversores,
+        modeloInversor: resumoInversores
+      }
+    }));
+  };
+
+  const handleAddInversor = () => {
+    const novoInversor = {
+      id: `inv-${Date.now()}`,
+      tipo: 'Inversor',
+      quantidade: 1,
+      potenciaKw: 5,
+      tensao: 'Monofásico 220V'
+    };
+    const updatedInversores = [...(form.dimensionamento.inversores || []), novoInversor];
+    const resumoInversores = recalcularResumoInversores(updatedInversores);
+
+    setForm((prev) => ({
+      ...prev,
+      dimensionamento: {
+        ...prev.dimensionamento,
+        inversores: updatedInversores,
+        modeloInversor: resumoInversores
+      }
+    }));
+  };
+
+  const handleRemoveInversor = (index) => {
+    if ((form.dimensionamento.inversores || []).length <= 1) return;
+    const updatedInversores = form.dimensionamento.inversores.filter((_, idx) => idx !== index);
+    const resumoInversores = recalcularResumoInversores(updatedInversores);
+
+    setForm((prev) => ({
+      ...prev,
+      dimensionamento: {
+        ...prev.dimensionamento,
+        inversores: updatedInversores,
+        modeloInversor: resumoInversores
+      }
+    }));
+  };
+
+  // ============================================================
+  // MOTOR DE CÁLCULO AUTOMÁTICO EM CASCATA (Etapa 1 Conta de Luz)
+  // ============================================================
   const handleContaLuzChange = (val) => {
     const conta = parseFloat(val) || 0;
     const tarifaEstimada = 1.0; // R$ 1,00/kWh média SP
@@ -103,13 +406,41 @@ export default function ProposalFormModal({ initialData, onClose, onSaved }) {
     
     // Alto Tietê: ~84.7 kWh/mês por kWp
     const kwpCalculado = Number((consumoKwh / 84.7).toFixed(2));
-    const placasCalculadas = Math.max(2, Math.round((kwpCalculado * 1000) / 590));
-    const areaCalculada = Math.round(placasCalculadas * 2.3);
-    const geracaoMensal = consumoKwh;
-    const geracaoAnual = geracaoMensal * 12;
+    
+    // Pega a potência do primeiro módulo ou 590W
+    const potModulo = form.dimensionamento?.modulos?.[0]?.potenciaW || 590;
+    const placasCalculadas = Math.max(2, Math.round((kwpCalculado * 1000) / potModulo));
+    
+    const novosModulos = [
+      {
+        id: form.dimensionamento?.modulos?.[0]?.id || 'mod-1',
+        quantidade: placasCalculadas,
+        potenciaW: potModulo,
+        modelo: 'Módulo Fotovoltaico Bifacial N-Type'
+      }
+    ];
+
+    const totais = recalcularTotaisModulos(novosModulos);
+
+    // Sugerir potência de inversor coerente com o kWp
+    const potInvSugerida = Math.max(1, Math.min(75, Math.ceil(totais.potenciaKwp)));
+    const novosInversores = form.dimensionamento?.inversores?.length
+      ? form.dimensionamento.inversores.map((inv, idx) =>
+          idx === 0 ? { ...inv, potenciaKw: potInvSugerida } : inv
+        )
+      : [
+          {
+            id: 'inv-1',
+            tipo: 'Inversor',
+            quantidade: 1,
+            potenciaKw: potInvSugerida,
+            tensao: 'Monofásico 220V'
+          }
+        ];
+    const resumoInversores = recalcularResumoInversores(novosInversores);
 
     // Investimento Turnkey sugerido (~R$ 2.670 por kWp)
-    const investimentoSugerido = Math.round((kwpCalculado * 2670) / 100) * 100 || 18900;
+    const investimentoSugerido = Math.round((totais.potenciaKwp * 2670) / 100) * 100 || 18900;
     
     // Recalcular financiamento e payback
     const novaConta = form.financeiro.contaNovaMensal || 65;
@@ -126,11 +457,15 @@ export default function ProposalFormModal({ initialData, onClose, onSaved }) {
       ...prev,
       dimensionamento: {
         ...prev.dimensionamento,
-        potenciaKwp: kwpCalculado,
-        qtdPaineis: placasCalculadas,
-        areaNecessariaM2: areaCalculada,
-        geracaoMensalKwh: geracaoMensal,
-        geracaoAnualKwh: geracaoAnual
+        modulos: novosModulos,
+        inversores: novosInversores,
+        potenciaKwp: totais.potenciaKwp,
+        qtdPaineis: totais.totalPlacas,
+        areaNecessariaM2: totais.areaNecessariaM2,
+        geracaoMensalKwh: totais.geracaoMensalKwh,
+        geracaoAnualKwh: totais.geracaoAnualKwh,
+        modeloPainel: totais.resumoPainel,
+        modeloInversor: resumoInversores
       },
       financeiro: {
         ...prev.financeiro,
@@ -479,110 +814,352 @@ export default function ProposalFormModal({ initialData, onClose, onSaved }) {
           {currentStep === 2 && (
             <div className="space-y-4 animate-in fade-in duration-200">
               
-              {/* Card Resumo do Dimensionamento Gerado */}
-              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400 shrink-0">
-                    <Zap className="w-5 h-5" />
+              {/* Card Resumo do Dimensionamento Gerado em Tempo Real */}
+              <div className="bg-gradient-to-r from-amber-500/10 via-slate-950 to-amber-500/15 border-2 border-amber-400/40 rounded-2xl p-4 shadow-lg">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-400 shrink-0">
+                      <Zap className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-white block">
+                        Dimensionamento da Usina Solar • {form.cliente.nome || 'Cliente'}
+                      </span>
+                      <span className="text-[11px] text-slate-400">
+                        O kWp e a área do telhado atualizam automaticamente conforme os módulos selecionados.
+                      </span>
+                    </div>
                   </div>
+
+                  <div className="bg-amber-400/20 border border-amber-400/50 px-3.5 py-1.5 rounded-xl text-amber-300 font-black text-sm shrink-0 flex items-center gap-2">
+                    <span className="text-white">{form.dimensionamento.potenciaKwp} kWp</span>
+                    <span className="text-amber-400/70">•</span>
+                    <span>{form.dimensionamento.qtdPaineis} Placas</span>
+                    <span className="text-amber-400/70">•</span>
+                    <span className="text-slate-300 font-semibold text-xs">~{form.dimensionamento.areaNecessariaM2} m²</span>
+                  </div>
+                </div>
+
+                {/* Mini indicadores rápidos */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 pt-3 border-t border-slate-800 text-[11px]">
+                  <div className="bg-slate-900/80 px-2.5 py-1.5 rounded-lg border border-slate-800">
+                    <span className="text-slate-400 block text-[10px]">Potência Total (kWp)</span>
+                    <strong className="text-amber-400 font-bold text-xs">{form.dimensionamento.potenciaKwp} kWp</strong>
+                  </div>
+                  <div className="bg-slate-900/80 px-2.5 py-1.5 rounded-lg border border-slate-800">
+                    <span className="text-slate-400 block text-[10px]">Total de Painéis</span>
+                    <strong className="text-white font-bold text-xs">{form.dimensionamento.qtdPaineis} placas</strong>
+                  </div>
+                  <div className="bg-slate-900/80 px-2.5 py-1.5 rounded-lg border border-slate-800">
+                    <span className="text-slate-400 block text-[10px]">Área de Telhado (m²)</span>
+                    <strong className="text-white font-bold text-xs">~{form.dimensionamento.areaNecessariaM2} m²</strong>
+                  </div>
+                  <div className="bg-slate-900/80 px-2.5 py-1.5 rounded-lg border border-slate-800">
+                    <span className="text-slate-400 block text-[10px]">Geração Prevista</span>
+                    <strong className="text-emerald-400 font-bold text-xs">~{form.dimensionamento.geracaoMensalKwh} kWh/mês</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* ============================================================
+                  SEÇÃO 1: MÓDULOS FOTOVOLTAICOS (PLACAS SOLARES)
+                  De 425W a 700W de 5 em 5W, múltiplos modelos e quantidades
+              ============================================================ */}
+              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 pb-2 border-b border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <SunMedium className="w-4 h-4 text-amber-400" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-white">
+                      Módulos Fotovoltaicos (Placas Solares)
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-amber-300 font-semibold bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
+                    425W a 700W (passos de 5W)
+                  </span>
+                </div>
+
+                <p className="text-[11px] text-slate-400">
+                  Defina os modelos de placas. Você pode adicionar mais de um lote/modelo com quantidades diferentes; a potência total da usina (kWp) e a área do telhado são vinculadas automaticamente.
+                </p>
+
+                {/* Lista de Módulos */}
+                <div className="space-y-2.5">
+                  {(form.dimensionamento.modulos || []).map((mod, index) => {
+                    const subtotalWatts = (Number(mod.quantidade) || 0) * (Number(mod.potenciaW) || 0);
+                    const subtotalKwp = (subtotalWatts / 1000).toFixed(2);
+                    const subtotalArea = Math.round((Number(mod.quantidade) || 0) * 2.2);
+
+                    return (
+                      <div
+                        key={mod.id || `mod-${index}`}
+                        className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition"
+                      >
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="w-5 h-5 rounded-full bg-amber-400/20 text-amber-400 flex items-center justify-center font-bold text-[10px]">
+                            {index + 1}
+                          </span>
+                          <span className="text-xs font-bold text-slate-200">Lote de Placas:</span>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 flex-1 w-full sm:w-auto">
+                          {/* Quantidade */}
+                          <div>
+                            <label className="block text-[10px] text-slate-400 font-semibold mb-1">
+                              Quantidade (Placas)
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              step="1"
+                              required
+                              value={mod.quantidade}
+                              onChange={(e) => handleUpdateModulo(index, 'quantidade', e.target.value)}
+                              className="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 rounded-lg px-2.5 py-1.5 text-white font-bold outline-none text-xs"
+                            />
+                          </div>
+
+                          {/* Potência W (425W a 700W de 5 em 5) */}
+                          <div>
+                            <label className="block text-[10px] text-slate-400 font-semibold mb-1">
+                              Potência Unitária (W)
+                            </label>
+                            <select
+                              value={mod.potenciaW}
+                              onChange={(e) => handleUpdateModulo(index, 'potenciaW', e.target.value)}
+                              className="w-full bg-slate-950 border border-amber-500/50 focus:border-amber-400 rounded-lg px-2.5 py-1.5 text-amber-300 font-bold outline-none text-xs"
+                            >
+                              {OPCOES_POTENCIA_MODULOS.map((w) => (
+                                <option key={w} value={w}>
+                                  {w}W {w === 590 ? '★ Padrão UseSol' : ''}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {/* Subtotal da Linha */}
+                          <div className="col-span-2 sm:col-span-1 flex flex-col justify-center">
+                            <span className="text-[10px] text-slate-400 font-semibold mb-1">Subtotal da Linha</span>
+                            <div className="bg-slate-950/70 border border-slate-800 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-slate-300 flex items-center justify-between">
+                              <span className="text-amber-400">{subtotalKwp} kWp</span>
+                              <span className="text-slate-400 text-[10px]">~{subtotalArea} m²</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Botão de Remover Módulo */}
+                        {(form.dimensionamento.modulos || []).length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveModulo(index)}
+                            className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition shrink-0"
+                            title="Remover este lote de placas"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Botão Adicionar Outro Modelo de Módulo */}
+                <button
+                  type="button"
+                  onClick={handleAddModulo}
+                  className="w-full py-2 px-3 border border-dashed border-amber-400/40 hover:border-amber-400 hover:bg-amber-400/10 text-amber-300 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Adicionar Outro Modelo de Módulo / Placas</span>
+                </button>
+              </div>
+
+              {/* ============================================================
+                  SEÇÃO 2: INVERSORES & MICROINVERSORES
+                  1kW a 75kW, 220V, 380V, 400V, 800V
+              ============================================================ */}
+              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 pb-2 border-b border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <Cpu className="w-4 h-4 text-amber-400" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-white">
+                      Inversores & Microinversores
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-amber-300 font-semibold bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
+                    1kW a 75kW • 220V, 380V, 400V, 800V
+                  </span>
+                </div>
+
+                <p className="text-[11px] text-slate-400">
+                  Selecione os inversores ou microinversores. Conforme as normas técnicas, microinversores operam estritamente em rede 220V.
+                </p>
+
+                {/* Lista de Inversores */}
+                <div className="space-y-2.5">
+                  {(form.dimensionamento.inversores || []).map((inv, index) => {
+                    const isMicro = inv.tipo === 'Microinversor';
+
+                    return (
+                      <div
+                        key={inv.id || `inv-${index}`}
+                        className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition"
+                      >
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="w-5 h-5 rounded-full bg-amber-400/20 text-amber-400 flex items-center justify-center font-bold text-[10px]">
+                            {index + 1}
+                          </span>
+                          <span className="text-xs font-bold text-slate-200">Equipamento:</span>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 flex-1 w-full sm:w-auto">
+                          {/* Tipo: Inversor ou Microinversor */}
+                          <div>
+                            <label className="block text-[10px] text-slate-400 font-semibold mb-1">
+                              Tipo de Equipamento
+                            </label>
+                            <select
+                              value={inv.tipo}
+                              onChange={(e) => handleUpdateInversor(index, 'tipo', e.target.value)}
+                              className="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 rounded-lg px-2 py-1.5 text-white font-bold outline-none text-xs"
+                            >
+                              <option value="Inversor">Inversor Solar (String)</option>
+                              <option value="Microinversor">Microinversor</option>
+                            </select>
+                          </div>
+
+                          {/* Quantidade */}
+                          <div>
+                            <label className="block text-[10px] text-slate-400 font-semibold mb-1">
+                              Quantidade
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              step="1"
+                              required
+                              value={inv.quantidade}
+                              onChange={(e) => handleUpdateInversor(index, 'quantidade', e.target.value)}
+                              className="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 rounded-lg px-2.5 py-1.5 text-white font-bold outline-none text-xs"
+                            />
+                          </div>
+
+                          {/* Potência (1kW ao 75kW ou micros) */}
+                          <div>
+                            <label className="block text-[10px] text-slate-400 font-semibold mb-1">
+                              Potência (kW)
+                            </label>
+                            <select
+                              value={inv.potenciaKw}
+                              onChange={(e) => handleUpdateInversor(index, 'potenciaKw', e.target.value)}
+                              className="w-full bg-slate-950 border border-amber-500/50 focus:border-amber-400 rounded-lg px-2 py-1.5 text-amber-300 font-bold outline-none text-xs"
+                            >
+                              {isMicro ? (
+                                OPCOES_POTENCIA_MICRO.map((kw) => (
+                                  <option key={`micro-${kw}`} value={kw}>
+                                    {kw} kW
+                                  </option>
+                                ))
+                              ) : (
+                                OPCOES_POTENCIA_INVERSOR.map((kw) => (
+                                  <option key={`inv-${kw}`} value={kw}>
+                                    {kw} kW
+                                  </option>
+                                ))
+                              )}
+                            </select>
+                          </div>
+
+                          {/* Tensão da Rede */}
+                          <div>
+                            <label className="block text-[10px] text-slate-400 font-semibold mb-1">
+                              Tensão de Conexão
+                            </label>
+                            <select
+                              value={inv.tensao}
+                              disabled={isMicro}
+                              onChange={(e) => handleUpdateInversor(index, 'tensao', e.target.value)}
+                              className={`w-full bg-slate-950 border rounded-lg px-2 py-1.5 text-xs outline-none font-bold ${
+                                isMicro
+                                  ? 'border-slate-800 text-slate-400 cursor-not-allowed'
+                                  : 'border-slate-700 text-white focus:border-amber-400'
+                              }`}
+                            >
+                              {isMicro ? (
+                                <option value="Monofásico / Bifásico 220V">220V (Padrão Micro)</option>
+                              ) : (
+                                TENSOES_INVERSOR.map((t) => (
+                                  <option key={t} value={t}>
+                                    {t}
+                                  </option>
+                                ))
+                              )}
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Botão de Remover Inversor */}
+                        {(form.dimensionamento.inversores || []).length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveInversor(index)}
+                            className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition shrink-0"
+                            title="Remover este inversor"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Botão Adicionar Outro Inversor */}
+                <button
+                  type="button"
+                  onClick={handleAddInversor}
+                  className="w-full py-2 px-3 border border-dashed border-amber-400/40 hover:border-amber-400 hover:bg-amber-400/10 text-amber-300 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Adicionar Outro Inversor / Microinversor</span>
+                </button>
+              </div>
+
+              {/* Ajustes Complementares (Garantias & Expansão) */}
+              <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5 space-y-3">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Memorial & Garantias Padrão UseSol
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div>
-                    <span className="text-xs font-bold text-white block">
-                      Dimensionamento Recomendado para {form.cliente.nome || 'o Cliente'}
-                    </span>
-                    <span className="text-[11px] text-slate-400">
-                      Calculado para cobrir a conta de R$ {form.financeiro.contaAtualMensal}/mês em {form.cliente.cidade || 'SP'}.
-                    </span>
+                    <label className="block text-slate-400 mb-1 text-[11px]">Garantia dos Módulos</label>
+                    <input
+                      type="text"
+                      value={form.dimensionamento.garantiaPainel}
+                      onChange={(e) => updateDimensionamento('garantiaPainel', e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-white outline-none focus:border-amber-400 text-xs"
+                    />
                   </div>
-                </div>
-                <div className="bg-amber-400/10 border border-amber-400/30 px-3 py-1 rounded-lg text-amber-300 font-bold text-xs shrink-0">
-                  {form.dimensionamento.potenciaKwp} kWp • {form.dimensionamento.qtdPaineis} Placas
-                </div>
-              </div>
 
-              {/* Grid de Campos Técnicos */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                
-                <div>
-                  <label className="block text-slate-400 mb-1 font-semibold">Potência da Usina (kWp) *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    value={form.dimensionamento.potenciaKwp}
-                    onChange={(e) => {
-                      const kwp = parseFloat(e.target.value) || 0;
-                      updateDimensionamento('potenciaKwp', kwp);
-                      // Ajustar placas proporcionalmente (590W)
-                      if (kwp > 0) {
-                        const qtd = Math.max(1, Math.round((kwp * 1000) / 590));
-                        updateDimensionamento('qtdPaineis', qtd);
-                        updateDimensionamento('areaNecessariaM2', Math.round(qtd * 2.3));
-                      }
-                    }}
-                    className="w-full bg-slate-950 border border-amber-500/60 rounded-xl px-3 py-2 text-white font-bold focus:border-amber-400 outline-none"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-slate-400 mb-1 text-[11px]">Garantia dos Inversores</label>
+                    <input
+                      type="text"
+                      value={form.dimensionamento.garantiaInversor}
+                      onChange={(e) => updateDimensionamento('garantiaInversor', e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-white outline-none focus:border-amber-400 text-xs"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-slate-400 mb-1 font-semibold">Qtd. Módulos (Placas)</label>
-                  <input
-                    type="number"
-                    value={form.dimensionamento.qtdPaineis}
-                    onChange={(e) => {
-                      const qtd = parseInt(e.target.value, 10) || 0;
-                      updateDimensionamento('qtdPaineis', qtd);
-                      updateDimensionamento('areaNecessariaM2', Math.round(qtd * 2.3));
-                    }}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-amber-400 outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-400 mb-1 font-semibold">Geração Média (kWh/mês)</label>
-                  <input
-                    type="number"
-                    value={form.dimensionamento.geracaoMensalKwh}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value, 10) || 0;
-                      updateDimensionamento('geracaoMensalKwh', val);
-                      updateDimensionamento('geracaoAnualKwh', val * 12);
-                    }}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-amber-400 outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-400 mb-1 font-semibold">Área Estimada (m²)</label>
-                  <input
-                    type="number"
-                    value={form.dimensionamento.areaNecessariaM2}
-                    onChange={(e) => updateDimensionamento('areaNecessariaM2', parseFloat(e.target.value) || 0)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-amber-400 outline-none"
-                  />
-                </div>
-
-              </div>
-
-              {/* Equipamentos Padrão UseSol */}
-              <div className="space-y-3 pt-2">
-                <div>
-                  <label className="block text-slate-400 mb-1">Modelo dos Módulos Solares</label>
-                  <input
-                    type="text"
-                    value={form.dimensionamento.modeloPainel}
-                    onChange={(e) => updateDimensionamento('modeloPainel', e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-amber-400 outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-400 mb-1">Modelo do Inversor Solar</label>
-                  <input
-                    type="text"
-                    value={form.dimensionamento.modeloInversor}
-                    onChange={(e) => updateDimensionamento('modeloInversor', e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-amber-400 outline-none"
-                  />
+                  <div className="sm:col-span-2">
+                    <label className="block text-slate-400 mb-1 text-[11px]">Possibilidade de Expansão Futura</label>
+                    <input
+                      type="text"
+                      value={form.dimensionamento.expansaoFutura}
+                      onChange={(e) => updateDimensionamento('expansaoFutura', e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-white outline-none focus:border-amber-400 text-xs"
+                    />
+                  </div>
                 </div>
               </div>
 

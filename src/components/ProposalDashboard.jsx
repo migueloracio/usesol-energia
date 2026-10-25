@@ -14,6 +14,7 @@ import {
   AlertCircle,
   ArrowLeft,
   UserPlus,
+  Users,
   Crown,
   MapPin,
   Phone
@@ -23,6 +24,7 @@ import { listarPropostas, excluirProposta } from '../lib/propostas';
 import { isMasterUser } from '../lib/auth';
 import ProposalFormModal from './ProposalFormModal';
 import UserCreateModal from './UserCreateModal';
+import TeamManagementSection from './TeamManagementSection';
 
 export default function ProposalDashboard({ user, onLogout, onViewProposal, onBackToSite }) {
   const [propostas, setPropostas] = useState([]);
@@ -33,6 +35,8 @@ export default function ProposalDashboard({ user, onLogout, onViewProposal, onBa
   const [editingProposta, setEditingProposta] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('propostas'); // 'propostas' | 'equipe'
+  const [teamRefreshKey, setTeamRefreshKey] = useState(0);
 
   const isMaster = isMasterUser(user);
 
@@ -120,16 +124,31 @@ export default function ProposalDashboard({ user, onLogout, onViewProposal, onBa
               <strong className="text-xs text-white truncate max-w-[180px]">{user?.email}</strong>
             </div>
 
-            {/* Botão exclusivo do Master para criar novos consultores */}
+            {/* Botões exclusivos do Master para gerenciar Equipe */}
             {isMaster && (
-              <button
-                onClick={() => setShowUserModal(true)}
-                className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-amber-300 hover:text-amber-200 border border-amber-400/40 text-xs font-bold p-2 sm:px-3 sm:py-2 rounded-xl transition shadow-sm"
-                title="Cadastrar Novo Consultor na equipe UseSol"
-              >
-                <UserPlus className="w-4 h-4 text-amber-400" />
-                <span className="hidden md:inline">Novo Consultor</span>
-              </button>
+              <>
+                <button
+                  onClick={() => setActiveTab(activeTab === 'equipe' ? 'propostas' : 'equipe')}
+                  className={`inline-flex items-center gap-1.5 text-xs font-bold p-2 sm:px-3 sm:py-2 rounded-xl transition shadow-sm ${
+                    activeTab === 'equipe'
+                      ? 'bg-amber-400 text-slate-950 font-bold shadow-amber-500/20'
+                      : 'bg-slate-900 hover:bg-slate-800 text-amber-300 hover:text-amber-200 border border-amber-400/40'
+                  }`}
+                  title="Gestão da Equipe UseSol"
+                >
+                  <Users className="w-4 h-4 text-amber-400" />
+                  <span className="hidden md:inline">Equipe</span>
+                </button>
+
+                <button
+                  onClick={() => setShowUserModal(true)}
+                  className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-amber-300 hover:text-amber-200 border border-amber-400/40 text-xs font-bold p-2 sm:px-3 sm:py-2 rounded-xl transition shadow-sm"
+                  title="Cadastrar Novo Consultor na equipe UseSol"
+                >
+                  <UserPlus className="w-4 h-4 text-amber-400" />
+                  <span className="hidden md:inline">Novo Consultor</span>
+                </button>
+              </>
             )}
 
             <button
@@ -158,7 +177,72 @@ export default function ProposalDashboard({ user, onLogout, onViewProposal, onBa
       {/* Conteúdo Principal */}
       <main className="max-w-7xl mx-auto px-3 sm:px-8 py-5 sm:py-8 space-y-4 sm:space-y-6">
         
-        {/* Banner de Resumo (Compacto no mobile: 3 colunas elegantes) */}
+        {/* Abas de Navegação (Exclusivas do Master) */}
+        {isMaster && (
+          <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+            <button
+              onClick={() => setActiveTab('propostas')}
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition ${
+                activeTab === 'propostas'
+                  ? 'bg-amber-400 text-slate-950 shadow-md shadow-amber-500/20'
+                  : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              <span>Propostas Comerciais</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
+                  activeTab === 'propostas'
+                    ? 'bg-slate-950/20 text-slate-950 font-bold'
+                    : 'bg-slate-800 text-slate-300'
+                }`}
+              >
+                {propostas.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('equipe')}
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition ${
+                activeTab === 'equipe'
+                  ? 'bg-amber-400 text-slate-950 shadow-md shadow-amber-500/20'
+                  : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span>Gestão da Equipe</span>
+              <span
+                className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border ${
+                  activeTab === 'equipe'
+                    ? 'bg-slate-950/20 text-slate-950 border-slate-950/30'
+                    : 'text-amber-400 bg-amber-400/10 border-amber-400/30'
+                }`}
+              >
+                Master
+              </span>
+            </button>
+          </div>
+        )}
+
+        {/* ============================================================== */}
+        {/* ABA: GESTÃO DA EQUIPE                                         */}
+        {/* ============================================================== */}
+        {activeTab === 'equipe' && isMaster ? (
+          <TeamManagementSection
+            key={teamRefreshKey}
+            user={user}
+            onOpenCreateUser={() => setShowUserModal(true)}
+            onUserChanged={() => {
+              carregar();
+              setTeamRefreshKey((k) => k + 1);
+            }}
+          />
+        ) : (
+          /* ============================================================== */
+          /* ABA: PROPOSTAS COMERCIAIS                                     */
+          /* ============================================================== */
+          <>
+            {/* Banner de Resumo (Compacto no mobile: 3 colunas elegantes) */}
         <div className="grid grid-cols-3 gap-2 sm:gap-4">
           
           <div className="bg-slate-900 border border-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-sm flex flex-col justify-between">
@@ -487,6 +571,8 @@ export default function ProposalDashboard({ user, onLogout, onViewProposal, onBa
             </div>
           </>
         )}
+      </>
+    )}
 
       </main>
 
@@ -511,7 +597,8 @@ export default function ProposalDashboard({ user, onLogout, onViewProposal, onBa
         <UserCreateModal
           onClose={() => setShowUserModal(false)}
           onUserCreated={() => {
-            // Recarrega caso necessário
+            carregar();
+            setTeamRefreshKey((k) => k + 1);
           }}
         />
       )}
