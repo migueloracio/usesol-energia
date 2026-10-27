@@ -16,7 +16,9 @@ import {
   Cpu,
   SunMedium,
   Shield,
-  Layers
+  Layers,
+  RotateCcw,
+  Edit3
 } from 'lucide-react';
 import { criarProposta, atualizarProposta } from '../lib/propostas';
 
@@ -110,16 +112,26 @@ export function normalizarDimensionamento(dim) {
   return {
     ...dim,
     modulos,
-    inversores
+    inversores,
+    geracaoManual: Boolean(dim.geracaoManual)
   };
 }
 
-export const recalcularTotaisModulos = (listaModulos) => {
+// Fator de produtividade calibrado para módulos bifaciais de alta eficiência em SP / Alto Tietê
+// 8 placas de 590W (4.72 kWp) geram ~590 kWh/mês (faixa real de 550 a 600 kWh)
+export const FATOR_GERACAO_KWH_KWP = 125;
+
+export const recalcularTotaisModulos = (listaModulos, options = {}) => {
   const totalPlacas = (listaModulos || []).reduce((acc, m) => acc + (Number(m.quantidade) || 0), 0);
   const totalWatts = (listaModulos || []).reduce((acc, m) => acc + ((Number(m.quantidade) || 0) * (Number(m.potenciaW) || 0)), 0);
   const potenciaKwp = Number((totalWatts / 1000).toFixed(2));
   const areaNecessariaM2 = Math.round(totalPlacas * 2.2);
-  const geracaoMensalKwh = Math.round(potenciaKwp * 84.7);
+
+  // Se o usuário estiver no modo manual e houver valor definido, mantém o manual; senão calcula com base em 125 kWh/kWp
+  const isManual = Boolean(options.geracaoManual);
+  const geracaoMensalKwh = isManual && options.geracaoMensalKwh !== undefined && options.geracaoMensalKwh !== null && options.geracaoMensalKwh !== ''
+    ? Number(options.geracaoMensalKwh)
+    : Math.round(potenciaKwp * FATOR_GERACAO_KWH_KWP);
   const geracaoAnualKwh = geracaoMensalKwh * 12;
 
   let resumoPainel = '';
@@ -264,7 +276,10 @@ export default function ProposalFormModal({ initialData, onClose, onSaved }) {
       return { ...m, [field]: field === 'quantidade' || field === 'potenciaW' ? Number(value) : value };
     });
 
-    const totais = recalcularTotaisModulos(updatedModulos);
+    const totais = recalcularTotaisModulos(updatedModulos, {
+      geracaoManual: form.dimensionamento?.geracaoManual,
+      geracaoMensalKwh: form.dimensionamento?.geracaoMensalKwh
+    });
 
     setForm((prev) => ({
       ...prev,
@@ -289,7 +304,10 @@ export default function ProposalFormModal({ initialData, onClose, onSaved }) {
       modelo: 'Módulo Fotovoltaico Bifacial N-Type'
     };
     const updatedModulos = [...(form.dimensionamento.modulos || []), novoModulo];
-    const totais = recalcularTotaisModulos(updatedModulos);
+    const totais = recalcularTotaisModulos(updatedModulos, {
+      geracaoManual: form.dimensionamento?.geracaoManual,
+      geracaoMensalKwh: form.dimensionamento?.geracaoMensalKwh
+    });
 
     setForm((prev) => ({
       ...prev,
@@ -309,7 +327,10 @@ export default function ProposalFormModal({ initialData, onClose, onSaved }) {
   const handleRemoveModulo = (index) => {
     if ((form.dimensionamento.modulos || []).length <= 1) return;
     const updatedModulos = form.dimensionamento.modulos.filter((_, idx) => idx !== index);
-    const totais = recalcularTotaisModulos(updatedModulos);
+    const totais = recalcularTotaisModulos(updatedModulos, {
+      geracaoManual: form.dimensionamento?.geracaoManual,
+      geracaoMensalKwh: form.dimensionamento?.geracaoMensalKwh
+    });
 
     setForm((prev) => ({
       ...prev,
@@ -322,6 +343,59 @@ export default function ProposalFormModal({ initialData, onClose, onSaved }) {
         geracaoMensalKwh: totais.geracaoMensalKwh,
         geracaoAnualKwh: totais.geracaoAnualKwh,
         modeloPainel: totais.resumoPainel
+      }
+    }));
+  };
+
+  // ============================================================
+  // HANDLERS DE GERAÇÃO (Cálculo Automático x Ajuste Manual)
+  // ============================================================
+  const handleToggleModoGeracao = () => {
+    const novoModoManual = !form.dimensionamento.geracaoManual;
+    const totais = recalcularTotaisModulos(form.dimensionamento.modulos || [], {
+      geracaoManual: novoModoManual,
+      geracaoMensalKwh: form.dimensionamento.geracaoMensalKwh
+    });
+
+    setForm((prev) => ({
+      ...prev,
+      dimensionamento: {
+        ...prev.dimensionamento,
+        geracaoManual: novoModoManual,
+        geracaoMensalKwh: totais.geracaoMensalKwh,
+        geracaoAnualKwh: totais.geracaoAnualKwh
+      }
+    }));
+  };
+
+  const handleUpdateGeracaoManual = (valor) => {
+    const valNumerico = valor === '' ? '' : Math.max(0, Number(valor));
+    const mensal = Number(valNumerico) || 0;
+    const anual = mensal * 12;
+
+    setForm((prev) => ({
+      ...prev,
+      dimensionamento: {
+        ...prev.dimensionamento,
+        geracaoManual: true,
+        geracaoMensalKwh: valNumerico,
+        geracaoAnualKwh: anual
+      }
+    }));
+  };
+
+  const handleResetGeracaoAutomatica = () => {
+    const totais = recalcularTotaisModulos(form.dimensionamento.modulos || [], {
+      geracaoManual: false
+    });
+
+    setForm((prev) => ({
+      ...prev,
+      dimensionamento: {
+        ...prev.dimensionamento,
+        geracaoManual: false,
+        geracaoMensalKwh: totais.geracaoMensalKwh,
+        geracaoAnualKwh: totais.geracaoAnualKwh
       }
     }));
   };
@@ -404,8 +478,9 @@ export default function ProposalFormModal({ initialData, onClose, onSaved }) {
     const tarifaEstimada = 1.0; // R$ 1,00/kWh média SP
     const consumoKwh = Math.round(conta / tarifaEstimada);
     
-    // Alto Tietê: ~84.7 kWh/mês por kWp
-    const kwpCalculado = Number((consumoKwh / 84.7).toFixed(2));
+    // Alto Tietê / SP: ~125 kWh/mês por kWp com módulos bifaciais de alta eficiência
+    // Ex: 8 placas de 590W (4.72 kWp) cobrem perfeitamente ~590 kWh/mês (faixa real de 550 a 600 kWh)
+    const kwpCalculado = Number((consumoKwh / FATOR_GERACAO_KWH_KWP).toFixed(2));
     
     // Pega a potência do primeiro módulo ou 590W
     const potModulo = form.dimensionamento?.modulos?.[0]?.potenciaW || 590;
@@ -420,7 +495,9 @@ export default function ProposalFormModal({ initialData, onClose, onSaved }) {
       }
     ];
 
-    const totais = recalcularTotaisModulos(novosModulos);
+    const totais = recalcularTotaisModulos(novosModulos, {
+      geracaoManual: false
+    });
 
     // Sugerir potência de inversor coerente com o kWp
     const potInvSugerida = Math.max(1, Math.min(75, Math.ceil(totais.potenciaKwp)));
@@ -855,7 +932,16 @@ export default function ProposalFormModal({ initialData, onClose, onSaved }) {
                     <strong className="text-white font-bold text-xs">~{form.dimensionamento.areaNecessariaM2} m²</strong>
                   </div>
                   <div className="bg-slate-900/80 px-2.5 py-1.5 rounded-lg border border-slate-800">
-                    <span className="text-slate-400 block text-[10px]">Geração Prevista</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400 block text-[10px]">Geração Prevista</span>
+                      <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${
+                        form.dimensionamento.geracaoManual 
+                          ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40' 
+                          : 'bg-emerald-500/20 text-emerald-300'
+                      }`}>
+                        {form.dimensionamento.geracaoManual ? 'Manual' : 'Auto 125'}
+                      </span>
+                    </div>
                     <strong className="text-emerald-400 font-bold text-xs">~{form.dimensionamento.geracaoMensalKwh} kWh/mês</strong>
                   </div>
                 </div>
@@ -971,6 +1057,121 @@ export default function ProposalFormModal({ initialData, onClose, onSaved }) {
                   <Plus className="w-3.5 h-3.5" />
                   <span>Adicionar Outro Modelo de Módulo / Placas</span>
                 </button>
+              </div>
+
+              {/* ============================================================
+                  SEÇÃO: ESTIMATIVA DE GERAÇÃO & AJUSTE MANUAL
+                  Cálculo Automático (125 kWh/kWp) ou Sobrescrita Manual
+              ============================================================ */}
+              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pb-2 border-b border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-emerald-400" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-white">
+                      Estimativa de Geração de Energia (kWh)
+                    </span>
+                    {form.dimensionamento.geracaoManual ? (
+                      <span className="text-[10px] bg-amber-400/20 text-amber-300 font-bold px-2 py-0.5 rounded-full border border-amber-400/40">
+                        Modo Manual Ativo
+                      </span>
+                    ) : (
+                      <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded-full border border-emerald-500/40">
+                        Cálculo Automático (125 kWh/kWp)
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Botão de Alternar Manual / Automático */}
+                  <div className="flex items-center gap-2">
+                    {form.dimensionamento.geracaoManual ? (
+                      <button
+                        type="button"
+                        onClick={handleResetGeracaoAutomatica}
+                        className="text-xs font-semibold px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg flex items-center gap-1.5 transition border border-slate-700 shadow-sm"
+                        title="Restaurar o cálculo automático baseado na potência das placas"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Restaurar Automático</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleToggleModoGeracao}
+                        className="text-xs font-semibold px-2.5 py-1.5 bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 rounded-lg flex items-center gap-1.5 transition border border-amber-400/40 shadow-sm"
+                        title="Permite definir manualmente o valor de geração mensal"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        <span>Ajustar Manualmente</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* Geração Mensal */}
+                  <div>
+                    <label className="block text-[10px] text-slate-400 font-semibold mb-1">
+                      Geração Mensal Estimada (kWh/mês)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        disabled={!form.dimensionamento.geracaoManual}
+                        value={form.dimensionamento.geracaoMensalKwh || ''}
+                        onChange={(e) => handleUpdateGeracaoManual(e.target.value)}
+                        placeholder="Ex: 600"
+                        className={`w-full rounded-lg px-3 py-2 text-sm font-bold outline-none border transition ${
+                          form.dimensionamento.geracaoManual
+                            ? 'bg-slate-900 border-amber-400 text-amber-300 focus:ring-2 focus:ring-amber-400/20 shadow-inner'
+                            : 'bg-slate-900/60 border-slate-800 text-emerald-400 cursor-not-allowed'
+                        }`}
+                      />
+                      <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-bold">
+                        kWh/mês
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Geração Anual */}
+                  <div>
+                    <label className="block text-[10px] text-slate-400 font-semibold mb-1">
+                      Geração Anual Estimada (kWh/ano)
+                    </label>
+                    <div className="bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2 text-sm font-bold text-white flex items-center justify-between">
+                      <span>{(Number(form.dimensionamento.geracaoMensalKwh) || 0) * 12}</span>
+                      <span className="text-xs text-slate-400">kWh/ano</span>
+                    </div>
+                  </div>
+
+                  {/* Produtividade Específica */}
+                  <div>
+                    <label className="block text-[10px] text-slate-400 font-semibold mb-1">
+                      Produtividade Média Estimada
+                    </label>
+                    <div className="bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 flex items-center justify-between">
+                      <span>
+                        {form.dimensionamento.potenciaKwp > 0
+                          ? `${(Number(form.dimensionamento.geracaoMensalKwh || 0) / form.dimensionamento.potenciaKwp).toFixed(1)} kWh/kWp`
+                          : '125.0 kWh/kWp'}
+                      </span>
+                      <span className="text-[10px] text-amber-400/80 font-medium">Alto Tietê / SP</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-[11px] text-slate-400 bg-slate-900/40 p-2.5 rounded-lg border border-slate-800/60">
+                  {form.dimensionamento.geracaoManual ? (
+                    <span className="text-amber-300 font-medium flex items-center gap-1.5">
+                      ✏️ <strong>Modo Manual ativo:</strong> O valor digitado acima será gravado na proposta sem ser sobrescrito ao mudar a quantidade de placas.
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1.5">
+                      ⚡ <strong>Cálculo Automático ativo:</strong> Geração estimada a <strong>125 kWh/mês por kWp</strong> (média com módulos bifaciais Tier-1). Clique em <em>"Ajustar Manualmente"</em> para personalizar.
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* ============================================================
